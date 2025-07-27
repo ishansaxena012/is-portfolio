@@ -159,7 +159,7 @@ const Index = () => {
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-              Your Name
+              ISHAN SAXENA
             </h1>
             <p className="text-xl md:text-2xl mb-4 text-blue-100">
               Aspiring Software Engineer | Full Stack Enthusiast
@@ -170,7 +170,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-white text-primary hover:bg-blue-50 transition-smooth"
+                className="border-white text-white hover:bg-white hover:text-white transition-smooth hover:bg-black "
                 onClick={() => scrollToSection('projects')}
               >
                 View My Projects
@@ -178,7 +178,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-primary transition-smooth"
+                className="border-black text-black hover:bg-white hover:text-white transition-smooth hover:bg-black "
               >
                 <Download className="mr-2 h-4 w-4" />
                 Download CV
