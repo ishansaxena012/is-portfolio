@@ -6,7 +6,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: '/is-portfolio/', 
+base: mode === 'production' ? '/is-portfolio/' : '/',
   server: {
     host: "::",
     port: 8080,
