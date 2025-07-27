@@ -272,7 +272,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20" />
 
         {/* Floating Particles */}
-      {[...Array(20)].map((_, i) => (
+      {[...Array(10)].map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white rounded-full opacity-20"
