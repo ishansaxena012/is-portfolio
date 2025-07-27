@@ -217,7 +217,7 @@ const Index = () => {
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Cursor follower */}
       <div
-        className="fixed w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full pointer-events-none z-50 mix-blend-difference"
+        className="fixed w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full pointer-events-none z-50 mix-blend-lighten"
         style={{
           left: cursorPos.x - 16,
           top: cursorPos.y - 16,
@@ -272,18 +272,16 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20" />
 
         {/* Floating Particles */}
-        {[...Array(100)].map((_, i) => (
+      {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-gray-500 rounded-full animate-float"
-            style={
-              {
-                "--duration": `${Math.random() * 200}s`,
-                "--delay": `${Math.random() * 20}s`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              } as React.CSSProperties
-            }
+            className="absolute w-1 h-1 bg-white rounded-full opacity-20"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${8 + Math.random() * 12}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 10}s`,
+            }}
           />
         ))}
 
@@ -295,7 +293,7 @@ const Index = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-lg opacity-75 animate-pulse" />
                 <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white/20 backdrop-blur-sm">
                   <img
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&crop=face"
+                    src="/dp.webp"
                     alt="Ishan Saxena"
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                   />
