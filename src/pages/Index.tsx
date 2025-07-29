@@ -32,6 +32,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
+import { getFirestore, collection, addDoc, Timestamp } from 'firebase/firestore';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("hero");
@@ -39,6 +42,7 @@ const Index = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [targetPos, setTargetPos] = useState({ x: 0, y: 0 });
+  
 
   useEffect(() => {
     const handleScroll = () => {
@@ -126,7 +130,7 @@ const Index = () => {
       { name: "Next.js", icon: Globe },
       { name: "TailwindCSS", icon: Globe },
     ],
-    Databases: [
+    "Databases": [
       { name: "MongoDB", icon: Database },
       { name: "MySQL", icon: Database },
       { name: "Redis", icon: Database },
@@ -309,15 +313,13 @@ const Index = () => {
             {/* Typing Effect Tagline */}
             <div className="text-2xl md:text-3xl mb-4 text-gray-300 font-light">
               <span className="inline-flex items-center">
-                Aspiring Software Engineer
-                <Sparkles className="ml-2 h-6 w-6 text-yellow-400 animate-spin" />
+                Building Tomorrow's Software
+                <Sparkles className="ml-2 h-6 w-6 text-yellow-400 animate-bounce" />
               </span>
             </div>
 
             <p className="text-lg mb-10 text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              Crafting digital experiences that merge creativity with
-              cutting-edge technology. Passionate about building the future, one
-              line of code at a time.
+                As a CSE student, I'm passionate about full-stack development and solving real-world problems with code. My focus is on architecting and building robust, user-centric software.
             </p>
 
             {/* Enhanced Buttons */}
@@ -578,7 +580,7 @@ const Index = () => {
                         <p className="text-gray-300 text-sm">
                           Data Structures & Algorithms, Database Management
                           Systems, Software Engineering, Machine Learning,
-                          Computer Networks, Operating Systems
+                          Computer Networks, Operating Systems, Theory of Computation & Compiler Design
                         </p>
                       </div>
                     </div>
