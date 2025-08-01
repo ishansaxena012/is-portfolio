@@ -1,5 +1,1 @@
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Powered by coffee and code :)
