@@ -44,6 +44,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Script } from "vm";
+// import
+import emailjs from '@emailjs/browser';
+
+
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("hero");
@@ -66,6 +70,8 @@ const Index = () => {
     education: false,
     contact: false,
   });
+  const [isSending, setIsSending] = useState(false);
+
 
   // Particle system
   const canvasRef = useRef(null);
@@ -213,12 +219,30 @@ const Index = () => {
     setMobileMenuOpen(false);
   };
 
-  const handleContactSubmit = (e) => {
-    e.preventDefault();
-    console.log('Contact form submitted:', contactForm);
-    // Add your form submission logic here
-    setContactForm({ name: '', email: '', message: '' });
+const handleContactSubmit = (e) => {
+  e.preventDefault();
+
+  const serviceID = 'service_t4mmr1r';
+  const templateID = 'template_or92l9q';
+  const publicKey = 'HToDbbiPtfV1qqA7A';
+
+  const templateParams = {
+    from_name: contactForm.name,
+    reply_to: contactForm.email,
+    message: contactForm.message,
   };
+
+  emailjs.send(serviceID, templateID, templateParams, publicKey)
+    .then(() => {
+      alert('Message sent successfully!');
+      setContactForm({ name: '', email: '', message: '' });
+    })
+    .catch((error) => {
+      console.error('EmailJS Error:', error);
+      alert('Failed to send message. Try again later.');
+    });
+};
+
 
   const navItems = [
     { id: "hero", label: "Home" },
@@ -1169,62 +1193,102 @@ const interests = [
 
             <div className="grid lg:grid-cols-2 gap-16 items-start">
               {/* Contact Form */}
-              <Card
-                className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 ${
-                  isVisible.contact ? "animate-slide-in-left" : "opacity-0"
-                }`}
-              >
-                <CardContent className="px-4 py-6 sm:px-6 md:px-8 lg:px-10">
-                  <h3 className="text-2xl font-light text-zinc-100 mb-8">
-                    Send a <span className="text-gradient">Message</span>
-                  </h3>
-                  
-                  <form onSubmit={handleContactSubmit} className="space-y-6">
-                    <div>
-                      <Input
-                        placeholder="Your Name"
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <Input
-                        type="email"
-                        placeholder="Your Email"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <Textarea
-                        placeholder="Your Message"
-                        rows={6}
-                        value={contactForm.message}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 resize-none"
-                        required
-                      />
-                    </div>
-                    
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-semibold py-4 rounded-none hover-lift group"
-                      onMouseEnter={() => setIsHovering(true)}
-                      onMouseLeave={() => setIsHovering(false)}
-                    >
-                      <Send className="mr-3 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                      Send Message
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+              {/* Contact Form */}
+<Card
+  className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 ${
+    isVisible.contact ? "animate-slide-in-left" : "opacity-0"
+  }`}
+>
+  <CardContent className="px-4 py-6 sm:px-6 md:px-8 lg:px-10">
+    <h3 className="text-2xl font-light text-zinc-100 mb-8">
+      Send a <span className="text-gradient">Message</span>
+    </h3>
+
+    <form onSubmit={handleContactSubmit} className="space-y-6">
+      <div>
+        <Input
+          placeholder="Your Name"
+          value={contactForm.name}
+          onChange={(e) =>
+            setContactForm((prev) => ({ ...prev, name: e.target.value }))
+          }
+          className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
+          required
+        />
+      </div>
+
+      <div>
+        <Input
+          type="email"
+          placeholder="Your Email"
+          value={contactForm.email}
+          onChange={(e) =>
+            setContactForm((prev) => ({ ...prev, email: e.target.value }))
+          }
+          className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
+          required
+        />
+      </div>
+
+      <div>
+        <Textarea
+          placeholder="Your Message"
+          rows={6}
+          value={contactForm.message}
+          onChange={(e) =>
+            setContactForm((prev) => ({ ...prev, message: e.target.value }))
+          }
+          className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 resize-none"
+          required
+        />
+      </div>
+
+      <Button
+        type="submit"
+        size="lg"
+        disabled={isSending}
+        className={`w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-semibold py-4 rounded-none hover-lift group ${
+          isSending ? "opacity-60 cursor-not-allowed" : ""
+        }`}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
+        {isSending ? (
+          <span className="flex items-center justify-center">
+            <svg
+              className="animate-spin h-5 w-5 mr-2 text-zinc-950"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+              ></path>
+            </svg>
+            Sending...
+          </span>
+        ) : (
+          <>
+            <Send className="mr-3 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            Send Message
+          </>
+        )}
+      </Button>
+    </form>
+  </CardContent>
+</Card>
+
+
 
               {/* Contact Information */}
               <div className={`space-y-8 ${isVisible.contact ? "animate-slide-in-right" : "opacity-0"}`} style={{ animationDelay: "0.3s" }}>
