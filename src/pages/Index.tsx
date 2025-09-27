@@ -1366,30 +1366,11 @@ const interests = [
                   <span className="text-gradient font-bold">ISHAN SAXENA</span>
                 </h3>
                 <p className="text-zinc-400 font-light">
-                  Crafting digital experiences with passion and precision
+                  Crafting digital experiences with passion and precision 😎
                 </p>
               </div>
 
               <div className="flex flex-col items-center md:items-end space-y-4">
-                <div className="flex space-x-6">
-                  {[
-                    { icon: Github, href: "https://github.com/ishansaxena012" },
-                    { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/" },
-                    { icon: Mail, href: "mailto:06ishansaxena@gmail.com" }
-                  ].map((social, index) => (
-                    <a
-                      key={index}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-zinc-400 hover:text-amber-400 transition-colors duration-300"
-                      onMouseEnter={() => setIsHovering(true)}
-                      onMouseLeave={() => setIsHovering(false)}
-                    >
-                      <social.icon className="h-5 w-5" />
-                    </a>
-                  ))}
-                </div>
                 <p className="text-zinc-500 text-sm">
                   © 2025 Ishan Saxena. All rights reserved.
                 </p>
