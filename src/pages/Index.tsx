@@ -44,7 +44,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Script } from "vm";
-// import
+
 import emailjs from '@emailjs/browser';
 
 
@@ -126,6 +126,16 @@ const Index = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+useEffect(() => {
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY; 
+
+    if (publicKey) {
+        emailjs.init({
+            publicKey: publicKey,
+        });
+    }
+
+}, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -220,27 +230,30 @@ const Index = () => {
   };
 
 const handleContactSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setIsSending(true);
 
-  const serviceID = 'service_t4mmr1r';
-  const templateID = 'template_or92l9q';
-  const publicKey = 'HToDbbiPtfV1qqA7A';
+    const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 
-  const templateParams = {
-    from_name: contactForm.name,
-    reply_to: contactForm.email,
-    message: contactForm.message,
-  };
+    const templateParams = {
+        from_name: contactForm.name,
+        reply_to: contactForm.email,
+        message: contactForm.message,
+    };
 
-  emailjs.send(serviceID, templateID, templateParams, publicKey)
-    .then(() => {
-      alert('Message sent successfully!');
-      setContactForm({ name: '', email: '', message: '' });
-    })
-    .catch((error) => {
-      console.error('EmailJS Error:', error);
-      alert('Failed to send message. Try again later.');
-    });
+    emailjs.send(serviceID, templateID, templateParams) 
+        .then(() => {
+            alert('Message sent successfully!');
+            setContactForm({ name: '', email: '', message: '' });
+        })
+        .catch((error) => {
+            console.error('EmailJS Error:', error);
+            alert('Failed to send message. Try again later.');
+        })
+        .finally(() => {
+            setIsSending(false);
+        });
 };
 
 
@@ -255,7 +268,7 @@ const handleContactSubmit = (e) => {
 
 const skills = {
 Languages: [
-  { name: "TypeScript", icon: Code },
+  { name: "JavaScript", icon: Code },
   { name: "Java", icon: Code },
   { name: "C++", icon: Cpu },            
   { name: "Python", icon: Activity },    
@@ -263,9 +276,8 @@ Languages: [
 ],
 
   Frontend: [
-    { name: "React", icon: Layers },
-    { name: "Next.js", icon: Globe },
-    { name: "TailwindCSS", icon: Globe },
+    { name: "ReactJS", icon: Layers },
+    { name: "NextJS", icon: Globe },
   ],
   Backend: [
     { name: "Node.js", icon: Server },
@@ -289,7 +301,7 @@ const projects = [
     title: "AgroFinCare",
     description:
       "Smart agricultural finance platform with AI-driven crop yield prediction and financial analytics for farmers.",
-    technologies: ["React", "Node.js", "MongoDB", "CNN", "Flask"],
+    technologies: ["ReactJS", "NodeJS", "MongoDB", "CNN", "Flask"],
     image: "afc-img.webp",
     github: "https://github.com/razzakshat/AgroFinCare",
     demo: "#",
@@ -297,29 +309,28 @@ const projects = [
     category2: "Collaborative",
   },
   {
-    title: "BridgeTalk",
+    title: "EchoChamber",
     description:
-      "Real-time multilingual call translator using Whisper, WebRTC, and open-source translation with emotion & cultural intelligence features.",
-    technologies: ["React", "TailwindCSS", "Whisper", "WebRTC", "Open Source APIs"],
-    image: "bt-img.webp",
-    github: "https://github.com/ishansaxena012/bridge-talk",
+      "Multi-persona AI chat app that generates responses in distinct tones—Optimistic, Sarcastic, Philosophical, and Practical—through a clean dark-themed UI.",
+    technologies: ["Node.js", "Express", "React", "Gemini API"],
+    image: "ec.webp",
+    github: "https://github.com/ishansaxena012/echo-chamber",
     demo: "#",
-    category: "Realtime AI",
-    category2: "In Progress",
+    category: "AI/Chat",
+    category2: "Completed",
   },
   {
-    title: "Smart Diet Planner",
+    title: "PixelForge",
     description:
-      "AI-powered nutrition app with personalized meal recommendations using machine learning algorithms.",
-    technologies: ["Kotlin", "Python", "Flask", "SQLite", "KNN", "OAuth"],
-    image: "bg3.webp",
-    github: "https://github.com/ishansaxena012/SmartDietPlannerApp",
+      "Client-side AI image generator powered by Hugging Face Inference API, supporting multiple models, aspect ratios, API key input via localStorage, and theme toggle.",
+    technologies: ["JavaScript", "HTML", "CSS", "Hugging Face API"],
+    image: "pfa.webp",
+    github: "https://github.com/ishansaxena012/pixel-forge-ai",
     demo: "#",
-    category: "Mobile",
+    category: "AI/ML",
     category2: "Completed",
   },
 ];
-
 
 
 const interests = [
@@ -339,8 +350,8 @@ const interests = [
     color: "from-emerald-400 to-green-500",
   },
   {
-    name: "Data Engineering",
-    icon: Database,
+    name: "Data Structures & Algorithm",
+    icon: Code,
     color: "from-violet-400 to-purple-500",
   },
 ];
@@ -351,7 +362,7 @@ const interests = [
       title: "Academic Excellence",
       description: "Maintained consistently high academic performance",
       icon: Award,
-      year: "2023-2025"
+      year: ""
     },
     {
       title: "Project Innovation",
@@ -463,25 +474,6 @@ const interests = [
         className="fixed inset-0 pointer-events-none z-0 opacity-30"
       />
 
-      {/* Custom Cursor */}
-      {/* <div
-        className={`fixed rounded-full pointer-events-none z-50 mix-blend-difference transition-all ease-out duration-300 ${
-          isHovering ? 'w-12 h-12 border-2 border-amber-400/80' : 'w-6 h-6 border-2 border-amber-400/60'
-        } ${
-          isMouseDown ? 'scale-75 border-amber-200/90' : ''
-        }`}
-        style={{
-          left: cursorPos.x - (isHovering ? 24 : 12),
-          top: cursorPos.y - (isHovering ? 24 : 12),
-        }}
-      >
-        <div
-          className={`absolute rounded-full transition-all duration-300 ease-out bg-amber-400/80 ${
-            isHovering ? 'w-2 h-2 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2' : 'w-1.5 h-1.5 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
-          }`}
-        />
-      </div> */}
-
       {/* Navigation */}
       <nav
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-700 ${
@@ -551,162 +543,162 @@ const interests = [
         </div>
       </nav>
 
-<section
-  id="hero"
-  className="relative min-h-screen flex items-center justify-center overflow-hidden py-12 md:py-16 lg:py-24" // Slightly reduced overall vertical padding to make content fit better
->
-  <div className="absolute inset-0 mesh-gradient" />
-
-  {/* Animated Geometric Shapes - Adjusting positions and sizes to be more visible and balanced */}
-  <div className="absolute top-16 left-1/4 w-28 h-28 border border-amber-400/10 rotate-45 animate-spin-slow hover:rotate-90 transition-transform duration-1000 -translate-x-1/2 -translate-y-1/2 hidden md:block lg:w-32 lg:h-32"></div> {/* Adjusted top/left, slightly smaller for better fit, responsive size increase */}
-  <div className="absolute bottom-16 right-1/4 w-20 h-20 border border-blue-400/10 rotate-12 animate-spin-reverse hover:rotate-45 transition-transform duration-1000 translate-x-1/2 translate-y-1/2 hidden md:block lg:w-24 lg:h-24"></div> {/* Adjusted bottom/right, slightly smaller for better fit, responsive size increase */}
-  {/* Smaller dots - positions remain good, ensuring they are not too close to the main content */}
-  <div className="absolute top-1/2 left-12 w-2 h-2 bg-amber-400/70 rounded-full animate-pulse-slow"></div>
-  <div className="absolute top-1/3 right-28 w-1.5 h-1.5 bg-blue-400/70 rounded-full animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
-  <div className="absolute bottom-1/3 left-1/5 w-2.5 h-2.5 bg-emerald-400/70 rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }}></div>
-
-  <div className="relative z-10 container mx-auto px-6 sm:px-8 text-center">
-    <div className="max-w-5xl mx-auto">
-      <div
-        className={`mb-12 ${ // Slightly reduced bottom margin
-          isVisible.hero ? "animate-scale-in" : "opacity-0"
-        }`}
-        style={{ animationDelay: "0.1s" }}
+      <section
+        id="hero"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden py-12 md:py-16 lg:py-24" 
       >
-        <div className="relative inline-block group">
-          <div className="w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-amber-400/50 p-1 hover:border-amber-400/80 transition-all duration-500 hover:scale-105 shadow-xl"> {/* Slightly reduced profile picture size */}
-            <img
-              src="dp.webp"
-              alt="Ishan Saxena Profile"
-              className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-700"
-            />
-          </div>
-          <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-7 h-7 md:w-9 md:h-9 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center animate-pulse-slowest shadow-md"> {/* Slightly reduced status dot size */}
-            <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-zinc-950 rounded-full"></div> {/* Inner dot size adjusted */}
-          </div>
-        </div>
-      </div>
+        <div className="absolute inset-0 mesh-gradient" />
 
-      <div className="text-center">
-        <div
-          className={`mb-6 ${ // Reduced bottom margin for tighter grouping
-            isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-          }`}
-          style={{ animationDelay: "0.3s" }}
-        >
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-4 text-zinc-50 tracking-tighter sm:tracking-normal lg:tracking-tight hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-amber-400 hover:to-orange-500 transition-all duration-700 cursor-default">
-            ISHAN SAXENA
-          </h1> {/* Significantly reduced text sizes for all breakpoints */}
-          <div className="text-xl md:text-3xl lg:text-4xl font-semibold text-amber-400 mb-6 tracking-widest uppercase typing-effect">
-            SOFTWARE ENGINEER
-          </div> {/* Significantly reduced text sizes for all breakpoints */}
-        </div>
+        {/* Animated Geometric Shapes - Adjusting positions and sizes to be more visible and balanced */}
+        <div className="absolute top-16 left-1/4 w-28 h-28 border border-amber-400/10 rotate-45 animate-spin-slow hover:rotate-90 transition-transform duration-1000 -translate-x-1/2 -translate-y-1/2 hidden md:block lg:w-32 lg:h-32"></div> 
+        <div className="absolute bottom-16 right-1/4 w-20 h-20 border border-blue-400/10 rotate-12 animate-spin-reverse hover:rotate-45 transition-transform duration-1000 translate-x-1/2 translate-y-1/2 hidden md:block lg:w-24 lg:h-24"></div>
+        {/* Smaller dots - positions remain good, ensuring they are not too close to the main content */}
+        <div className="absolute top-1/2 left-12 w-2 h-2 bg-amber-400/70 rounded-full animate-pulse-slow"></div>
+        <div className="absolute top-1/3 right-28 w-1.5 h-1.5 bg-blue-400/70 rounded-full animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute bottom-1/3 left-1/5 w-2.5 h-2.5 bg-emerald-400/70 rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }}></div>
 
-        <div
-          className={`mb-12 ${ // Slightly reduced bottom margin
-            isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-          }`}
-          style={{ animationDelay: "0.6s" }}
-        >
-          <p className="text-base md:text-lg lg:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed font-normal"> {/* Reduced text sizes and max-width for paragraph */}
-            Crafting exceptional digital experiences through innovative solutions and clean, scalable code.
-            Passionately transforming complex problems into elegant software.
-          </p>
-        </div>
-      </div>
-
-      <div
-        className={`flex flex-col sm:flex-row gap-4 justify-center items-center ${ // Reduced gap between buttons
-          isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-        }`}
-        style={{ animationDelay: "0.9s" }}
-      >
-        <Button
-          size="lg"
-          className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-orange-600 text-zinc-950 font-semibold px-8 py-4 rounded-md hover-lift shadow-2xl relative overflow-hidden group transition-all duration-300" // Reduced button padding
-          onClick={() => scrollToSection("projects")}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          <span className="relative z-10 flex items-center whitespace-nowrap text-sm md:text-base"> {/* Adjusted font size for buttons */}
-            VIEW MY WORK
-            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /> {/* Smaller icon and margin */}
-          </span>
-          <div className="absolute inset-0 shimmer"></div>
-        </Button>
-
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-zinc-700 text-zinc-100 bg-transparent hover:bg-zinc-800/60 px-8 py-4 rounded-md hover-lift transition-all duration-300 group" // Reduced button padding
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
+        <div className="relative z-10 container mx-auto px-6 sm:px-8 text-center">
+          <div className="max-w-5xl mx-auto">
+            <div
+              className={`mb-12 ${ 
+                isVisible.hero ? "animate-scale-in" : "opacity-0"
+              }`}
+              style={{ animationDelay: "0.1s" }}
             >
-              <Download className="mr-2 h-4 w-4 group-hover:animate-bounce" /> {/* Smaller icon and margin */}
-              <span className="text-sm md:text-base">DOWNLOAD RESUME</span> {/* Adjusted font size for buttons */}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="glass-strong border-zinc-700 text-zinc-100 max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-amber-400 text-xl">
-                Download Resume
-              </DialogTitle>
-            </DialogHeader>
-            <div className="mt-6 text-center space-y-4">
-              <p className="text-zinc-300">Get my latest resume in PDF format.</p>
-              <a
-                href="/resume.pdf"
-                download
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-semibold rounded hover:from-amber-500 hover:to-orange-600 transition-all duration-300"
+              <div className="relative inline-block group">
+                <div className="w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-amber-400/50 p-1 hover:border-amber-400/80 transition-all duration-500 hover:scale-105 shadow-xl">
+                  <img
+                    src="dp.webp"
+                    alt="Ishan Saxena Profile"
+                    className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-700"
+                  />
+                </div>
+                <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-7 h-7 md:w-9 md:h-9 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center animate-pulse-slowest shadow-md"> 
+                  <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-zinc-950 rounded-full"></div> 
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div
+                className={`mb-6 ${ 
+                  isVisible.hero ? "animate-fade-in-up" : "opacity-0"
+                }`}
+                style={{ animationDelay: "0.3s" }}
+              >
+                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-4 text-zinc-50 tracking-tighter sm:tracking-normal lg:tracking-tight hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-amber-400 hover:to-orange-500 transition-all duration-700 cursor-default">
+                  ISHAN SAXENA
+                </h1>
+                <div className="text-xl md:text-3xl lg:text-4xl font-semibold text-amber-400 mb-6 tracking-widest uppercase typing-effect">
+                  SOFTWARE ENGINEER
+                </div>
+              </div>
+
+              <div
+                className={`mb-12 ${ 
+                  isVisible.hero ? "animate-fade-in-up" : "opacity-0"
+                }`}
+                style={{ animationDelay: "0.6s" }}
+              >
+                <p className="text-base md:text-lg lg:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed font-normal"> 
+                  Crafting exceptional digital experiences through innovative solutions and clean, scalable code.
+                  Passionately transforming complex problems into elegant software.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`flex flex-col sm:flex-row gap-4 justify-center items-center ${ 
+                isVisible.hero ? "animate-fade-in-up" : "opacity-0"
+              }`}
+              style={{ animationDelay: "0.9s" }}
+            >
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-orange-600 text-zinc-950 font-semibold px-8 py-4 rounded-md hover-lift shadow-2xl relative overflow-hidden group transition-all duration-300" 
+                onClick={() => scrollToSection("projects")}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
               >
-                <Download className="mr-2 h-4 w-4" />
-                Download PDF
-              </a>
+                <span className="relative z-10 flex items-center whitespace-nowrap text-sm md:text-base"> 
+                  VIEW MY WORK
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /> 
+                </span>
+                <div className="absolute inset-0 shimmer"></div>
+              </Button>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-2 border-zinc-700 text-zinc-100 bg-transparent hover:bg-zinc-800/60 px-8 py-4 rounded-md hover-lift transition-all duration-300 group" 
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
+                  >
+                    <Download className="mr-2 h-4 w-4 group-hover:animate-bounce" /> 
+                    <span className="text-sm md:text-base">DOWNLOAD RESUME</span> 
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glass-strong border-zinc-700 text-zinc-100 max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-amber-400 text-xl">
+                      Download Resume
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="mt-6 text-center space-y-4">
+                    <p className="text-zinc-300">Get my latest resume in PDF format.</p>
+                    <a
+                      href="/resume.pdf"
+                      download
+                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-semibold rounded hover:from-amber-500 hover:to-orange-600 transition-all duration-300"
+                      onMouseEnter={() => setIsHovering(true)}
+                      onMouseLeave={() => setIsHovering(false)}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
+                    </a>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
 
-      <div
-        className={`flex justify-center space-x-5 sm:space-x-6 mt-16 ${ // Reduced space-x and top margin
-          isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-        }`}
-        style={{ animationDelay: "1.2s" }}
-      >
-        {[
-          { icon: Github, href: "https://github.com/ishansaxena012", label: "GitHub" },
-          { icon: Linkedin, href: "https://linkedin.com/in/ishansaxena012", label: "LinkedIn" },
-          { icon: Mail, href: "mailto:ishan@example.com", label: "Email" }
-        ].map((social, index) => (
-          <a
-            key={index}
-            href={social.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 glass-effect rounded-full hover:bg-zinc-800/40 transition-all duration-300 group hover:scale-110 flex items-center justify-center border border-transparent hover:border-amber-400/30" // Reduced padding slightly
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            aria-label={social.label}
-          >
-            <social.icon className="h-5 w-5 text-zinc-400 group-hover:text-amber-400 transition-colors" /> {/* Reduced icon size */}
-          </a>
-        ))}
-      </div>
-    </div>
+            <div
+              className={`flex justify-center space-x-5 sm:space-x-6 mt-16 ${ 
+                isVisible.hero ? "animate-fade-in-up" : "opacity-0"
+              }`}
+              style={{ animationDelay: "1.2s" }}
+            >
+              {[
+                { icon: Github, href: "https://github.com/ishansaxena012", label: "GitHub" },
+                { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/", label: "LinkedIn" },
+                { icon: Mail, href: "mailto:06ishansaxena@gmail.com", label: "Email" }
+              ].map((social, index) => (
+                <a
+                  key={index}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3 glass-effect rounded-full hover:bg-zinc-800/40 transition-all duration-300 group hover:scale-110 flex items-center justify-center border border-transparent hover:border-amber-400/30" 
+                  onMouseEnter={() => setIsHovering(true)}
+                  onMouseLeave={() => setIsHovering(false)}
+                  aria-label={social.label}
+                >
+                  <social.icon className="h-5 w-5 text-zinc-400 group-hover:text-amber-400 transition-colors" /> 
+                </a>
+              ))}
+            </div>
+          </div>
 
-    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 animate-pulse-slow md:bottom-10"> {/* Adjusted bottom position */}
-      <div className="flex flex-col items-center space-y-2"> {/* Reduced space-y */}
-        <div className="w-px h-12 bg-gradient-to-b from-transparent via-amber-400/80 to-transparent"></div> {/* Reduced line height */}
-        <ChevronDown className="h-6 w-6 text-amber-400 animate-bounce-slow" /> {/* Reduced icon size */}
-        <span className="text-xs text-zinc-400 tracking-widest uppercase"></span>
-      </div>
-    </div>
-  </div>
-</section>
+          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 animate-pulse-slow md:bottom-10"> 
+            <div className="flex flex-col items-center space-y-6"> 
+              <ChevronDown className="h-6 w-6 text-amber-400 animate-bounce-slow" /> 
+              <span className="text-xs text-zinc-400 tracking-widest uppercase"></span>
+            </div>
+          </div>
+
+        </div>
+      </section>
 
       {/* About Section */}
       <section id="about" className="py-32 bg-zinc-900/50 relative">
@@ -850,22 +842,7 @@ const interests = [
                                 <skill.icon className="h-5 w-5 text-amber-400 shrink-0" />
                                 <span className="text-zinc-300 font-light">{skill.name}</span>
                               </div>
-
-                              {/* <span className="text-xs text-zinc-500 font-medium">
-                                {skill.proficiency}%
-                              </span> */}
                             </div>
-                            {/* <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-1500 ease-out"
-                                style={{
-                                  width: isVisible.skills
-                                    ? `${skill.proficiency}%`
-                                    : "0%",
-                                  transitionDelay: `${categoryIndex * 0.2 + index * 0.1}s`
-                                }}
-                              ></div>
-                            </div> */}
                           </div>
                         ))}
                       </div>
@@ -1193,100 +1170,99 @@ const interests = [
 
             <div className="grid lg:grid-cols-2 gap-16 items-start">
               {/* Contact Form */}
-              {/* Contact Form */}
-<Card
-  className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 ${
-    isVisible.contact ? "animate-slide-in-left" : "opacity-0"
-  }`}
->
-  <CardContent className="px-4 py-6 sm:px-6 md:px-8 lg:px-10">
-    <h3 className="text-2xl font-light text-zinc-100 mb-8">
-      Send a <span className="text-gradient">Message</span>
-    </h3>
+              <Card
+                className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 ${
+                  isVisible.contact ? "animate-slide-in-left" : "opacity-0"
+                }`}
+              >
+                <CardContent className="px-4 py-6 sm:px-6 md:px-8 lg:px-10">
+                  <h3 className="text-2xl font-light text-zinc-100 mb-8">
+                    Send a <span className="text-gradient">Message</span>
+                  </h3>
 
-    <form onSubmit={handleContactSubmit} className="space-y-6">
-      <div>
-        <Input
-          placeholder="Your Name"
-          value={contactForm.name}
-          onChange={(e) =>
-            setContactForm((prev) => ({ ...prev, name: e.target.value }))
-          }
-          className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
-          required
-        />
-      </div>
+                  <form onSubmit={handleContactSubmit} className="space-y-6">
+                    <div>
+                      <Input
+                        placeholder="Your Name"
+                        value={contactForm.name}
+                        onChange={(e) =>
+                          setContactForm((prev) => ({ ...prev, name: e.target.value }))
+                        }
+                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
+                        required
+                      />
+                    </div>
 
-      <div>
-        <Input
-          type="email"
-          placeholder="Your Email"
-          value={contactForm.email}
-          onChange={(e) =>
-            setContactForm((prev) => ({ ...prev, email: e.target.value }))
-          }
-          className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
-          required
-        />
-      </div>
+                    <div>
+                      <Input
+                        type="email"
+                        placeholder="Your Email"
+                        value={contactForm.email}
+                        onChange={(e) =>
+                          setContactForm((prev) => ({ ...prev, email: e.target.value }))
+                        }
+                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
+                        required
+                      />
+                    </div>
 
-      <div>
-        <Textarea
-          placeholder="Your Message"
-          rows={6}
-          value={contactForm.message}
-          onChange={(e) =>
-            setContactForm((prev) => ({ ...prev, message: e.target.value }))
-          }
-          className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 resize-none"
-          required
-        />
-      </div>
+                    <div>
+                      <Textarea
+                        placeholder="Your Message"
+                        rows={6}
+                        value={contactForm.message}
+                        onChange={(e) =>
+                          setContactForm((prev) => ({ ...prev, message: e.target.value }))
+                        }
+                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 resize-none"
+                        required
+                      />
+                    </div>
 
-      <Button
-        type="submit"
-        size="lg"
-        disabled={isSending}
-        className={`w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-semibold py-4 rounded-none hover-lift group ${
-          isSending ? "opacity-60 cursor-not-allowed" : ""
-        }`}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
-        {isSending ? (
-          <span className="flex items-center justify-center">
-            <svg
-              className="animate-spin h-5 w-5 mr-2 text-zinc-950"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-              ></path>
-            </svg>
-            Sending...
-          </span>
-        ) : (
-          <>
-            <Send className="mr-3 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-            Send Message
-          </>
-        )}
-      </Button>
-    </form>
-  </CardContent>
-</Card>
+                    <Button
+                      type="submit"
+                      size="lg"
+                      disabled={isSending}
+                      className={`w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-semibold py-4 rounded-none hover-lift group ${
+                        isSending ? "opacity-60 cursor-not-allowed" : ""
+                      }`}
+                      onMouseEnter={() => setIsHovering(true)}
+                      onMouseLeave={() => setIsHovering(false)}
+                    >
+                      {isSending ? (
+                        <span className="flex items-center justify-center">
+                          <svg
+                            className="animate-spin h-5 w-5 mr-2 text-zinc-950"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                            ></path>
+                          </svg>
+                          Sending...
+                        </span>
+                      ) : (
+                        <>
+                          <Send className="mr-3 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                          Send Message
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
 
 
 
@@ -1354,22 +1330,10 @@ const interests = [
                       },
                       {
                         icon: Linkedin,
-                        href: "https://linkedin.com/in/ishansaxena012",
+                        href: "https://www.linkedin.com/in/ishan-saxena-62781428b/",
                         label: "LinkedIn",
                         color: "hover:bg-blue-600"
                       },
-                      {
-                        icon: Mail,
-                        href: "mailto:ishansaxena012@gmail.com",
-                        label: "Email",
-                        color: "hover:bg-red-900"
-                      },
-                      {
-                        icon: Globe,
-                        href: "#",
-                        label: "Portfolio",
-                        color: "hover:bg-gray-600"
-                      }
                     ].map((social, index) => (
                       <a
                         key={index}
@@ -1386,43 +1350,6 @@ const interests = [
                     ))}
                   </div>
                 </div>
-
-                {/* Availability Status */}
-                {/* <Card className="glass-effect border-zinc-800 hover:border-green-400/30 transition-all duration-500">
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4">
-                      <div className="relative">
-                        <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                        <div className="absolute inset-0 w-4 h-4 bg-green-500 rounded-full animate-ping opacity-30"></div>
-                      </div>
-                      <div>
-                        <p className="text-zinc-100 font-medium">Available for new opportunities</p>
-                        <p className="text-zinc-400 text-sm">Open to internships and collaborations</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card> */}
-
-                {/* Quick Stats */}
-                {/* <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: "Response Time", value: "< 24hrs", icon: Zap },
-                    { label: "Projects Completed", value: "50+", icon: Trophy }
-                  ].map((stat, index) => (
-                    <Card
-                      key={index}
-                      className="glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-500 text-center group hover-lift"
-                      onMouseEnter={() => setIsHovering(true)}
-                      onMouseLeave={() => setIsHovering(false)}
-                    >
-                      <CardContent className="p-6">
-                        <stat.icon className="h-6 w-6 text-amber-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                        <div className="text-lg font-bold text-zinc-100">{stat.value}</div>
-                        <div className="text-zinc-400 text-xs uppercase tracking-wide">{stat.label}</div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div> */}
               </div>
             </div>
           </div>
@@ -1447,8 +1374,8 @@ const interests = [
                 <div className="flex space-x-6">
                   {[
                     { icon: Github, href: "https://github.com/ishansaxena012" },
-                    { icon: Linkedin, href: "https://linkedin.com/in/ishansaxena012" },
-                    { icon: Mail, href: "mailto:ishansaxena012@gmail.com" }
+                    { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/" },
+                    { icon: Mail, href: "mailto:06ishansaxena@gmail.com" }
                   ].map((social, index) => (
                     <a
                       key={index}

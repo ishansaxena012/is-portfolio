@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Professional Portfolio Design System - Modern & Clean
-All colors MUST be HSL. Inter font throughout.
-*/
 
 @layer base {
   :root {
