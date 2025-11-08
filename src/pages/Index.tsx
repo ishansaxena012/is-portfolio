@@ -298,15 +298,15 @@ Languages: [
 
 const projects = [
   {
-    title: "AgroFinCare",
+    title: "SentinelWatch",
     description:
-      "Smart agricultural finance platform with AI-driven crop yield prediction and financial analytics for farmers.",
-    technologies: ["ReactJS", "NodeJS", "MongoDB", "CNN", "Flask"],
-    image: "afc-img.webp",
-    github: "https://github.com/razzakshat/AgroFinCare",
+      "Real-time NIDS platform using C++ and Node.js for high-speed packet analysis and adaptive threat detection with minimal latency.",
+    technologies: ["C++", "NodeJS", "Express", "SQLite", "JS"],
+    image: "nids.png",
+    github: "https://github.com/ishansaxena012/nids",
     demo: "#",
-    category: "AI/ML",
-    category2: "Collaborative",
+    category: "Security",
+    category2: "Completed",
   },
   {
     title: "EchoChamber",
@@ -1366,7 +1366,7 @@ const interests = [
                   <span className="text-gradient font-bold">ISHAN SAXENA</span>
                 </h3>
                 <p className="text-zinc-400 font-light">
-                  Crafting digital experiences with passion and precision 😎
+                  Crafting digital experiences with passion and precision :)
                 </p>
               </div>
 
