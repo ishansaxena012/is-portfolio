@@ -248,8 +248,8 @@ const handleContactSubmit = (e) => {
             setContactForm({ name: '', email: '', message: '' });
         })
         .catch((error) => {
-            console.error('EmailJS Error:', error);
-            alert('Failed to send message. Try again later.');
+            // console.error('EmailJS Error:', error);
+            alert("Server is having a meltdown!\nBut hey… I'm always cool on LinkedIn :)");
         })
         .finally(() => {
             setIsSending(false);
