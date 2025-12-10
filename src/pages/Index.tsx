@@ -21,9 +21,7 @@ import {
   Calendar,
   MapPin,
   ArrowRight,
-  Sparkles,
   Star,
-  Zap,
   Terminal,
   Layers,
   Server,
@@ -43,19 +41,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Script } from "vm";
-
-import emailjs from '@emailjs/browser';
-
-
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("hero");
   const [isScrolled, setIsScrolled] = useState(false);
-  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
-  const [targetPos, setTargetPos] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [isMouseDown, setIsMouseDown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -71,9 +60,8 @@ const Index = () => {
     contact: false,
   });
   const [isSending, setIsSending] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
-
-  // Particle system
   const canvasRef = useRef(null);
   const particles = useRef([]);
 
@@ -85,7 +73,6 @@ const Index = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Initialize particles
     for (let i = 0; i < 50; i++) {
       particles.current.push({
         x: Math.random() * canvas.width,
@@ -126,29 +113,16 @@ const Index = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-useEffect(() => {
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY; 
-
-    if (publicKey) {
-        emailjs.init({
-            publicKey: publicKey,
-        });
-    }
-
-}, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = [
-        "hero",
-        "about",
-        "skills",
-        "projects",
-        "education",
-        "contact",
-      ];
+      const sections = ["hero", "about", "skills", "projects", "education", "contact"];
       const scrollPosition = window.scrollY + 100;
       setIsScrolled(window.scrollY > 50);
+
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (window.scrollY / docHeight) * 100;
+      setScrollProgress(progress);
 
       for (const section of sections) {
         const element = document.getElementById(section);
@@ -156,10 +130,7 @@ useEffect(() => {
           const offsetTop = element.offsetTop;
           const height = element.offsetHeight;
 
-          if (
-            scrollPosition >= offsetTop &&
-            scrollPosition < offsetTop + height
-          ) {
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + height) {
             setActiveSection(section);
             break;
           }
@@ -167,14 +138,6 @@ useEffect(() => {
       }
     };
 
-    const handleMouseMove = (e) => {
-      setTargetPos({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleMouseDown = () => setIsMouseDown(true);
-    const handleMouseUp = () => setIsMouseDown(false);
-
-    // Intersection Observer for animations
     const observerOptions = {
       threshold: 0.1,
       rootMargin: "0px 0px -50px 0px",
@@ -196,30 +159,13 @@ useEffect(() => {
     });
 
     window.addEventListener("scroll", handleScroll);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
     handleScroll();
-
-    let animationFrameId;
-    const animate = () => {
-      setCursorPos((prev) => ({
-        x: prev.x + (targetPos.x - prev.x) * 0.15,
-        y: prev.y + (targetPos.y - prev.y) * 0.15,
-      }));
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    animate();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
-      cancelAnimationFrame(animationFrameId);
       observer.disconnect();
     };
-  }, [targetPos]);
+  }, []);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -229,33 +175,34 @@ useEffect(() => {
     setMobileMenuOpen(false);
   };
 
-const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSending(true);
 
-    const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-    const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const formData = new FormData();
+    formData.append("entry.2005620554", contactForm.name);
+    formData.append("entry.1045781291", contactForm.email);
+    formData.append("entry.839337160", contactForm.message);
 
-    const templateParams = {
-        from_name: contactForm.name,
-        reply_to: contactForm.email,
-        message: contactForm.message,
-    };
+    try {
+      await fetch(
+        "https://docs.google.com/forms/d/e/1FAIpQLSe0WqCqa00zRz-UVYHA91I2YLLixuoQYQ4FoH_ia5zNdrnjXw/formResponse",
+        {
+          method: "POST",
+          mode: "no-cors",
+          body: formData,
+        }
+      );
 
-    emailjs.send(serviceID, templateID, templateParams) 
-        .then(() => {
-            alert('Message sent successfully!');
-            setContactForm({ name: '', email: '', message: '' });
-        })
-        .catch((error) => {
-            // console.error('EmailJS Error:', error);
-            alert("Server is having a meltdown!\nBut hey… I'm always cool on LinkedIn :)");
-        })
-        .finally(() => {
-            setIsSending(false);
-        });
-};
+      alert("Message sent successfully!");
+      setContactForm({ name: "", email: "", message: "" });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Failed to send message. Please try again.");
+    }
 
+    setIsSending(false);
+  };
 
   const navItems = [
     { id: "hero", label: "Home" },
@@ -266,94 +213,72 @@ const handleContactSubmit = (e) => {
     { id: "contact", label: "Contact" },
   ];
 
-const skills = {
-Languages: [
-  { name: "JavaScript", icon: Code },
-  { name: "Java", icon: Code },
-  { name: "C++", icon: Cpu },            
-  { name: "Python", icon: Activity },    
-  { name: "Kotlin", icon: Smartphone },  
-],
+  const skills = {
+    Languages: [
+      { name: "JavaScript", icon: Code },
+      { name: "Java", icon: Code },
+      { name: "C++", icon: Cpu },
+      { name: "Python", icon: Activity },
+      { name: "Kotlin", icon: Smartphone },
+    ],
+    Frontend: [
+      { name: "ReactJS", icon: Layers },
+      { name: "NextJS", icon: Globe },
+    ],
+    Backend: [
+      { name: "Node.js", icon: Server },
+      { name: "Express.js", icon: Server },
+    ],
+    Database: [
+      { name: "MongoDB", icon: Database },
+      { name: "MySQL", icon: Database },
+    ],
+    DevOps: [
+      { name: "Docker", icon: Monitor },
+      { name: "AWS", icon: Monitor },
+      { name: "Git", icon: Monitor },
+      { name: "Linux", icon: Terminal },
+    ],
+  };
 
-  Frontend: [
-    { name: "ReactJS", icon: Layers },
-    { name: "NextJS", icon: Globe },
-  ],
-  Backend: [
-    { name: "Node.js", icon: Server },
-    { name: "Express.js", icon: Server },
-  ],
-  Database: [
-    { name: "MongoDB", icon: Database },
-    { name: "MySQL", icon: Database },
-  ],
-  DevOps: [
-    { name: "Docker", icon: Monitor },
-    { name: "AWS", icon: Monitor },
-    { name: "Git", icon: Monitor },
-    { name: "Linux", icon: Terminal },
-  ],
-};
-
-
-const projects = [
-  {
-    title: "SentinelWatch",
-    description:
-      "Real-time NIDS platform using C++ and Node.js for high-speed packet analysis and adaptive threat detection with minimal latency.",
-    technologies: ["C++", "NodeJS", "Express", "SQLite", "JS"],
-    image: "nids.png",
-    github: "https://github.com/ishansaxena012/nids",
-    demo: "#",
-    category: "Security",
-    category2: "Completed",
-  },
-  {
-    title: "EchoChamber",
-    description:
-      "Multi-persona AI chat app that generates responses in distinct tones—Optimistic, Sarcastic, Philosophical, and Practical—through a clean dark-themed UI.",
-    technologies: ["Node.js", "Express", "React", "Gemini API"],
-    image: "ec.webp",
-    github: "https://github.com/ishansaxena012/echo-chamber",
-    demo: "#",
-    category: "AI/Chat",
-    category2: "Completed",
-  },
-  {
-    title: "PixelForge",
-    description:
-      "Client-side AI image generator powered by Hugging Face Inference API, supporting multiple models, aspect ratios, API key input via localStorage, and theme toggle.",
-    technologies: ["JavaScript", "HTML", "CSS", "Hugging Face API"],
-    image: "pfa.webp",
-    github: "https://github.com/ishansaxena012/pixel-forge-ai",
-    demo: "#",
-    category: "AI/ML",
-    category2: "Completed",
-  },
-];
-
+  const projects = [
+    {
+      title: "SentinelWatch",
+      description: "Real-time NIDS platform using C++ and Node.js for high-speed packet analysis and adaptive threat detection with minimal latency.",
+      technologies: ["C++", "NodeJS", "Express", "SQLite", "JS"],
+      image: "nids.png",
+      github: "https://github.com/ishansaxena012/nids",
+      demo: "#",
+      category: "Security",
+      category2: "Completed",
+    },
+    {
+      title: "EchoChamber",
+      description: "Multi-persona AI chat app that generates responses in distinct tones—Optimistic, Sarcastic, Philosophical, and Practical—through a clean dark-themed UI.",
+      technologies: ["Node.js", "Express", "React", "Gemini API"],
+      image: "ec.webp",
+      github: "https://github.com/ishansaxena012/echo-chamber",
+      demo: "#",
+      category: "AI/Chat",
+      category2: "Completed",
+    },
+    {
+      title: "PixelForge",
+      description: "Client-side AI image generator powered by Hugging Face Inference API, supporting multiple models, aspect ratios, API key input via localStorage, and theme toggle.",
+      technologies: ["JavaScript", "HTML", "CSS", "Hugging Face API"],
+      image: "pfa.webp",
+      github: "https://github.com/ishansaxena012/pixel-forge-ai",
+      demo: "#",
+      category: "AI/ML",
+      category2: "Completed",
+    },
+  ];
 
 const interests = [
-  {
-    name: "Web Development",
-    icon: Brain,
-    color: "from-amber-400 to-orange-500",
-  },
-  {
-    name: "Android Development",
-    icon: Layers,
-    color: "from-blue-400 to-cyan-500",
-  },
-  {
-    name: "System Design",
-    icon: Cpu,
-    color: "from-emerald-400 to-green-500",
-  },
-  {
-    name: "Data Structures & Algorithm",
-    icon: Code,
-    color: "from-violet-400 to-purple-500",
-  },
+  { name: "Web Development", img: "/web.png", },
+  { name: "Android Development", img: "/android.png",  },
+  { name: "System Design", img: "/sd.jpeg",  },
+  { name: "Data Structures & Algorithm", img: "/dsa.png", },
 ];
 
 
@@ -375,11 +300,6 @@ const interests = [
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 overflow-x-hidden">
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-10px) rotate(1deg); }
-          66% { transform: translateY(5px) rotate(-1deg); }
-        }
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(50px); }
           to { opacity: 1; transform: translateY(0); }
@@ -395,10 +315,6 @@ const interests = [
         @keyframes scaleIn {
           from { opacity: 0; transform: scale(0.8); }
           to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
         }
         .animate-fade-in-up {
           animation: fadeInUp 1s ease-out forwards;
@@ -424,110 +340,58 @@ const interests = [
           -webkit-backdrop-filter: blur(25px);
           border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .mesh-gradient {
-          background: 
-            radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.4) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.4) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.4) 0%, transparent 50%);
-        }
         .text-gradient {
           background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .shimmer {
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-          background-size: 200% 100%;
-          animation: shimmer 2s infinite;
-        }
         .hover-lift {
           transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         .hover-lift:hover {
           transform: translateY(-8px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-        .typing-effect::after {
-          content: '|';
-          animation: blink 1s infinite;
-        }
-        @keyframes blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0; }
-        }
-        .smooth-scroll {
-          scroll-behavior: smooth;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
         }
       `}</style>
 
-      {/* Particle Background */}
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 pointer-events-none z-0 opacity-30"
-      />
+      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-30" />
 
       {/* Navigation */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-700 ${
-          isScrolled ? "glass-strong py-4 shadow-2xl" : "bg-transparent py-8"
-        }`}
-      >
-        <div className="container mx-auto px-8">
+      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-700 ${isScrolled ? "glass-strong py-4 shadow-2xl" : "bg-transparent py-8"}`}>
+        <div className="container mx-auto px-6 md:px-8">
           <div className="flex justify-between items-center">
-            <div className="font-light text-2xl tracking-wider text-zinc-100">
+            <div className="font-light text-xl md:text-2xl tracking-wider text-zinc-100">
               <span className="font-bold text-gradient">ISHAN SAXENA</span>
             </div>
             
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex space-x-12">
-              {navItems.map((item, index) => (
+            <div className="hidden md:flex space-x-8 lg:space-x-12">
+              {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  onMouseEnter={() => setIsHovering(true)}
-                  onMouseLeave={() => setIsHovering(false)}
                   className={`text-sm font-light tracking-wide transition-all duration-500 hover:text-amber-400 relative group ${
-                    activeSection === item.id
-                      ? "text-amber-400"
-                      : "text-zinc-300"
+                    activeSection === item.id ? "text-amber-400" : "text-zinc-300"
                   }`}
-                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {item.label}
-                  <span
-                    className={`absolute -bottom-1 left-0 h-px bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ${
-                      activeSection === item.id
-                        ? "w-full"
-                        : "w-0 group-hover:w-full"
-                    }`}
-                  />
+                  <span className={`absolute -bottom-1 left-0 h-px bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ${
+                    activeSection === item.id ? "w-full" : "w-0 group-hover:w-full"
+                  }`} />
                 </button>
               ))}
             </div>
 
-            {/* Mobile Menu Button */}
             <button
               className="md:hidden text-zinc-100 hover:text-amber-400 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
 
-          {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <div className="md:hidden mt-8 glass-strong rounded-lg p-6">
-              {navItems.map((item, index) => (
+            <div className="md:hidden mt-8 glass-strong rounded-lg p-6 animate-fade-in-up">
+              {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
@@ -543,88 +407,53 @@ const interests = [
         </div>
       </nav>
 
-      <section
-        id="hero"
-        className="relative min-h-screen flex items-center justify-center overflow-hidden py-12 md:py-16 lg:py-24" 
-      >
-        <div className="absolute inset-0 mesh-gradient" />
-
-        {/* Animated Geometric Shapes - Adjusting positions and sizes to be more visible and balanced */}
-        <div className="absolute top-16 left-1/4 w-28 h-28 border border-amber-400/10 rotate-45 animate-spin-slow hover:rotate-90 transition-transform duration-1000 -translate-x-1/2 -translate-y-1/2 hidden md:block lg:w-32 lg:h-32"></div> 
-        <div className="absolute bottom-16 right-1/4 w-20 h-20 border border-blue-400/10 rotate-12 animate-spin-reverse hover:rotate-45 transition-transform duration-1000 translate-x-1/2 translate-y-1/2 hidden md:block lg:w-24 lg:h-24"></div>
-        {/* Smaller dots - positions remain good, ensuring they are not too close to the main content */}
-        <div className="absolute top-1/2 left-12 w-2 h-2 bg-amber-400/70 rounded-full animate-pulse-slow"></div>
-        <div className="absolute top-1/3 right-28 w-1.5 h-1.5 bg-blue-400/70 rounded-full animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
-        <div className="absolute bottom-1/3 left-1/5 w-2.5 h-2.5 bg-emerald-400/70 rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }}></div>
-
+      {/* Hero Section */}
+      <section id="hero" className="relative min-h-screen flex items-center justify-center py-20 md:py-24">
         <div className="relative z-10 container mx-auto px-6 sm:px-8 text-center">
           <div className="max-w-5xl mx-auto">
-            <div
-              className={`mb-12 ${ 
-                isVisible.hero ? "animate-scale-in" : "opacity-0"
-              }`}
-              style={{ animationDelay: "0.1s" }}
-            >
+            <div className={`mb-8 md:mb-12 ${isVisible.hero ? "animate-scale-in" : "opacity-0"}`}>
               <div className="relative inline-block group">
-                <div className="w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-amber-400/50 p-1 hover:border-amber-400/80 transition-all duration-500 hover:scale-105 shadow-xl">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-amber-400/50 p-1 hover:border-amber-400/80 transition-all duration-500 hover:scale-105 shadow-xl">
                   <img
                     src="dp.webp"
-                    alt="Ishan Saxena Profile"
+                    alt="Ishan Saxena"
                     className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-700"
                   />
                 </div>
-                <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-7 h-7 md:w-9 md:h-9 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center animate-pulse-slowest shadow-md"> 
-                  <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-zinc-950 rounded-full"></div> 
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 md:w-9 md:h-9 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-zinc-950 rounded-full"></div>
                 </div>
               </div>
             </div>
 
             <div className="text-center">
-              <div
-                className={`mb-6 ${ 
-                  isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-                }`}
-                style={{ animationDelay: "0.3s" }}
-              >
-                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-4 text-zinc-50 tracking-tighter sm:tracking-normal lg:tracking-tight hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-amber-400 hover:to-orange-500 transition-all duration-700 cursor-default">
+              <div className={`mb-6 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.2s" }}>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-zinc-50 tracking-tight">
                   ISHAN SAXENA
                 </h1>
-                <div className="text-xl md:text-3xl lg:text-4xl font-semibold text-amber-400 mb-6 tracking-widest uppercase typing-effect">
+                <div className="text-lg md:text-2xl lg:text-3xl font-semibold text-amber-400 mb-4 md:mb-6 tracking-widest uppercase">
                   SOFTWARE ENGINEER
                 </div>
               </div>
 
-              <div
-                className={`mb-12 ${ 
-                  isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-                }`}
-                style={{ animationDelay: "0.6s" }}
-              >
-                <p className="text-base md:text-lg lg:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed font-normal"> 
-                  Crafting exceptional digital experiences through innovative solutions and clean, scalable code.
-                  Passionately transforming complex problems into elegant software.
-                </p>
+              <div className={`mb-8 md:mb-12 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.4s" }}>
+                <p className="text-base md:text-lg lg:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed px-4">
+  Engineering solutions. Eliminating bugs. Delivering clarity through code.
+</p>
+
               </div>
             </div>
 
-            <div
-              className={`flex flex-col sm:flex-row gap-4 justify-center items-center ${ 
-                isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-              }`}
-              style={{ animationDelay: "0.9s" }}
-            >
+            <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center px-4 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.6s" }}>
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-orange-600 text-zinc-950 font-semibold px-8 py-4 rounded-md hover-lift shadow-2xl relative overflow-hidden group transition-all duration-300" 
+                className="w-full sm:w-auto bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-orange-600 text-zinc-950 font-semibold px-6 md:px-8 py-3 md:py-4 rounded-md hover-lift shadow-2xl"
                 onClick={() => scrollToSection("projects")}
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
               >
-                <span className="relative z-10 flex items-center whitespace-nowrap text-sm md:text-base"> 
+                <span className="flex items-center whitespace-nowrap text-sm md:text-base">
                   VIEW MY WORK
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /> 
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </span>
-                <div className="absolute inset-0 shimmer"></div>
               </Button>
 
               <Dialog>
@@ -632,19 +461,15 @@ const interests = [
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-2 border-zinc-700 text-zinc-100 bg-transparent hover:bg-zinc-800/60 px-8 py-4 rounded-md hover-lift transition-all duration-300 group" 
-                    onMouseEnter={() => setIsHovering(true)}
-                    onMouseLeave={() => setIsHovering(false)}
+                    className="w-full sm:w-auto border-2 border-zinc-700 text-zinc-100 bg-transparent hover:bg-zinc-800/60 px-6 md:px-8 py-3 md:py-4 rounded-md hover-lift transition-all duration-300"
                   >
-                    <Download className="mr-2 h-4 w-4 group-hover:animate-bounce" /> 
-                    <span className="text-sm md:text-base">DOWNLOAD RESUME</span> 
+                    <Download className="mr-2 h-4 w-4" />
+                    <span className="text-sm md:text-base">DOWNLOAD RESUME</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="glass-strong border-zinc-700 text-zinc-100 max-w-md">
+                <DialogContent className="glass-strong border-zinc-700 text-zinc-100 max-w-md mx-4">
                   <DialogHeader>
-                    <DialogTitle className="text-amber-400 text-xl">
-                      Download Resume
-                    </DialogTitle>
+                    <DialogTitle className="text-amber-400 text-xl">Download Resume</DialogTitle>
                   </DialogHeader>
                   <div className="mt-6 text-center space-y-4">
                     <p className="text-zinc-300">Get my latest resume in PDF format.</p>
@@ -652,8 +477,6 @@ const interests = [
                       href="/resume.pdf"
                       download
                       className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-semibold rounded hover:from-amber-500 hover:to-orange-600 transition-all duration-300"
-                      onMouseEnter={() => setIsHovering(true)}
-                      onMouseLeave={() => setIsHovering(false)}
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download PDF
@@ -663,12 +486,7 @@ const interests = [
               </Dialog>
             </div>
 
-            <div
-              className={`flex justify-center space-x-5 sm:space-x-6 mt-16 ${ 
-                isVisible.hero ? "animate-fade-in-up" : "opacity-0"
-              }`}
-              style={{ animationDelay: "1.2s" }}
-            >
+            <div className={`flex justify-center space-x-5 sm:space-x-6 mt-12 md:mt-16 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.8s" }}>
               {[
                 { icon: Github, href: "https://github.com/ishansaxena012", label: "GitHub" },
                 { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/", label: "LinkedIn" },
@@ -679,110 +497,109 @@ const interests = [
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 glass-effect rounded-full hover:bg-zinc-800/40 transition-all duration-300 group hover:scale-110 flex items-center justify-center border border-transparent hover:border-amber-400/30" 
-                  onMouseEnter={() => setIsHovering(true)}
-                  onMouseLeave={() => setIsHovering(false)}
+                  className="p-3 glass-effect rounded-full hover:bg-zinc-800/40 transition-all duration-300 group hover:scale-110"
                   aria-label={social.label}
                 >
-                  <social.icon className="h-5 w-5 text-zinc-400 group-hover:text-amber-400 transition-colors" /> 
+                  <social.icon className="h-5 w-5 text-zinc-400 group-hover:text-amber-400 transition-colors" />
                 </a>
               ))}
             </div>
           </div>
 
-          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 animate-pulse-slow md:bottom-10"> 
-            <div className="flex flex-col items-center space-y-6"> 
-              <ChevronDown className="h-6 w-6 text-amber-400 animate-bounce-slow" /> 
-              <span className="text-xs text-zinc-400 tracking-widest uppercase"></span>
-            </div>
-          </div>
-
+          {/* <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2"> */}
+            {/* <ChevronDown className="h-6 w-6 text-amber-400 animate-bounce" /> */}
+          {/* </div> */}
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-32 bg-zinc-900/50 relative">
-        <div className="container mx-auto px-8">
+      <section id="about" className="py-20 md:py-32 bg-zinc-900/50 relative">
+        <div className="container mx-auto px-6 md:px-8">
           <div className="max-w-6xl mx-auto">
-            <div
-              className={`grid lg:grid-cols-2 gap-20 items-center ${
-                isVisible.about ? "animate-fade-in-up" : "opacity-0"
-              }`}
-            >
-              <div className="space-y-8">
+            <div className={`grid lg:grid-cols-2 gap-12 lg:gap-20 items-center ${isVisible.about ? "animate-fade-in-up" : "opacity-0"}`}>
+              <div className="space-y-6 md:space-y-8">
                 <div>
-                  <h2 className="text-4xl md:text-5xl font-thin mb-8 text-zinc-100">
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-6 md:mb-8 text-zinc-100">
                     About <span className="text-gradient font-light">Me</span>
                   </h2>
-                  <div className="w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mb-8 rounded-full"></div>
+                  <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mb-6 md:mb-8 rounded-full"></div>
                 </div>
 
-                <div className="space-y-6">
-                  <p className="text-lg text-zinc-300 leading-relaxed font-light">
+                <div className="space-y-4 md:space-y-6">
+                  <p className="text-base md:text-lg text-zinc-300 leading-relaxed font-light">
                     I'm a passionate third-year Computer Science student at VIT Bhopal, driven by the endless possibilities 
                     of technology. My journey began with curiosity and has evolved into a deep commitment to creating 
                     impactful digital solutions.
                   </p>
 
-                  <p className="text-lg text-zinc-300 leading-relaxed font-light">
+                  <p className="text-base md:text-lg text-zinc-300 leading-relaxed font-light">
                     Every line of code I write is an opportunity to solve real-world problems and push the boundaries 
                     of what's possible. I believe in clean architecture, scalable solutions, and user-centric design.
                   </p>
-
-                  <p className="text-lg text-zinc-300 leading-relaxed font-light">
-                    My approach combines technical excellence with creative thinking, ensuring that every project 
-                    not only functions flawlessly but also delivers an exceptional user experience.
-                  </p>
                 </div>
 
-                <div className="flex items-center space-x-4 pt-8">
-                  <div className="w-4 h-4 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full animate-pulse"></div>
-                  <span className="text-zinc-400 font-light tracking-wide">
-                    Always Learning • Always Building • Always Innovating
+                <div className="flex items-center space-x-4 pt-4 md:pt-8">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"></div>
+                  <span className="text-sm md:text-base text-zinc-400 font-light tracking-wide">
+                    Always Learning • Always Building
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 pt-8">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-amber-400 mb-2">10+</div>
-                    <div className="text-sm text-zinc-400 uppercase tracking-wide">Projects</div>
+                <div className="grid grid-cols-2 gap-4 md:gap-6 pt-6 md:pt-8">
+                  <div className="text-center p-4 glass-effect rounded-lg">
+                    <div className="text-2xl md:text-3xl font-bold text-amber-400 mb-2">10+</div>
+                    <div className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">Projects</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-amber-400 mb-2">100+</div>
-                    <div className="text-sm text-zinc-400 uppercase tracking-wide">Commits</div>
+                  <div className="text-center p-4 glass-effect rounded-lg">
+                    <div className="text-2xl md:text-3xl font-bold text-amber-400 mb-2">150+</div>
+                    <div className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">Commits</div>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-8">
-                <h3 className="text-2xl font-light text-zinc-100 mb-8">
+              <div className="space-y-6 md:space-y-8">
+                <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">
                   Core <span className="text-gradient">Interests</span>
                 </h3>
-                <div className="grid grid-cols-2 gap-6">
-                  {interests.map((interest, index) => (
-                    <div
-                      key={index}
-                      className={`group relative p-8 glass-effect rounded-lg hover:glass-strong transition-all duration-700 hover-lift ${
-                        isVisible.about ? "animate-scale-in" : "opacity-0"
-                      }`}
-                      style={{ animationDelay: `${index * 0.2}s` }}
-                      onMouseEnter={() => setIsHovering(true)}
-                      onMouseLeave={() => setIsHovering(false)}
-                    >
-                      <div className="flex flex-col items-center text-center space-y-4">
-                        <div
-                          className={`p-4 rounded-full bg-gradient-to-r ${interest.color} bg-opacity-20 group-hover:scale-110 transition-transform duration-500`}
-                        >
-                          <interest.icon className="h-8 w-8 text-zinc-100" />
-                        </div>
-                        <span className="text-sm font-light text-zinc-300 group-hover:text-zinc-100 transition-colors duration-300">
-                          {interest.name}
-                        </span>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-amber-400/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"></div>
-                    </div>
-                  ))}
-                </div>
+                <div className="grid grid-cols-2 gap-4 md:gap-6">
+  {interests.map((interest, index) => (
+    <div
+      key={index}
+      className={`group relative p-4 md:p-6 glass-effect rounded-lg hover:glass-strong transition-all duration-700 hover-lift ${
+        isVisible.about ? "animate-scale-in" : "opacity-0"
+      }`}
+      style={{ animationDelay: `${index * 0.12}s` }}
+    >
+      <div className="flex flex-col items-center text-center space-y-3 md:space-y-4">
+
+        {/* Outer circular background */}
+        <div
+          className={`flex items-center justify-center rounded-full transition-transform duration-500 group-hover:scale-105
+            w-16 h-16 md:w-20 md:h-20
+          `}
+        >
+          {/* Inner plate */}
+          <div className="flex items-center justify-center rounded-full bg-white/10
+              w-12 h-12 md:w-16 md:h-16
+          ">
+            <img
+              src={interest.img}  
+              alt={interest.name}
+              className="object-contain w-8 h-8 md:w-10 md:h-10"
+              draggable={false}
+              onError={(e) => (e.currentTarget.style.display = "none")}
+            />
+          </div>
+        </div>
+
+        {/* Label */}
+        <span className="text-xs md:text-sm font-light text-zinc-300 group-hover:text-zinc-100 transition-colors duration-300">
+          {interest.name}
+        </span>
+      </div>
+    </div>
+  ))}
+</div>
 
 
               </div>
@@ -792,80 +609,58 @@ const interests = [
       </section>
 
       {/* Skills Section */}
-      <section id="skills" className="py-32 bg-zinc-950 relative">
-        <div className="container mx-auto px-10">
+      <section id="skills" className="py-20 md:py-32 bg-zinc-950 relative">
+        <div className="container mx-auto px-6 md:px-10">
           <div className="max-w-7xl mx-auto">
-            <div
-              className={`text-center mb-20 ${
-                isVisible.skills ? "animate-fade-in-up" : "opacity-0"
-              }`}
-            >
-              <h2 className="text-4xl md:text-5xl font-thin mb-6 text-zinc-100">
-                Technical{" "}
-                <span className="text-gradient font-light">Arsenal</span>
+            <div className={`text-center mb-12 md:mb-20 ${isVisible.skills ? "animate-fade-in-up" : "opacity-0"}`}>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
+                Technical <span className="text-gradient font-light">Arsenal</span>
               </h2>
-              <div className="w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-6 rounded-full"></div>
-              <p className="text-zinc-400 font-light max-w-2xl mx-auto text-lg">
+              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
+              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
                 A comprehensive toolkit honed through continuous learning and real-world application
               </p>
             </div>
 
-            <div
-              className={`grid md:grid-cols-2 lg:grid-cols-5 gap-8 ${
-                isVisible.skills ? "animate-fade-in-up" : "opacity-0"
-              }`}
-            >
-
-              {Object.entries(skills).map(
-                ([category, skillList], categoryIndex) => (
-                  <Card
-                    key={category}
-                    className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 group hover-lift ${
-                      isVisible.skills ? "animate-scale-in" : "opacity-0"
-                    }`}
-                    style={{ animationDelay: `${categoryIndex * 0.2}s` }}
-                    onMouseEnter={() => setIsHovering(true)}
-                    onMouseLeave={() => setIsHovering(false)}
-                  >
-                    <CardContent className="p-8">
-                      <div className="flex items-center space-x-3 mb-8">
-                        <div className="w-2 h-2 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"></div>
-                        <h3 className="text-xl font-light text-zinc-100 group-hover:text-amber-400 transition-colors duration-300">
-                          {category}
-                        </h3>
-                      </div>
-                      <div className="space-y-6">
-                        {skillList.map((skill, index) => (
-                          <div key={index} className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2 whitespace-nowrap">
-                                <skill.icon className="h-5 w-5 text-amber-400 shrink-0" />
-                                <span className="text-zinc-300 font-light">{skill.name}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              )}
+            <div className={`grid sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8 ${isVisible.skills ? "animate-fade-in-up" : "opacity-0"}`}>
+              {Object.entries(skills).map(([category, skillList], categoryIndex) => (
+                <Card
+                  key={category}
+                  className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 group hover-lift ${
+                    isVisible.skills ? "animate-scale-in" : "opacity-0"
+                  }`}
+                  style={{ animationDelay: `${categoryIndex * 0.2}s` }}
+                >
+                  <CardContent className="p-6 md:p-8">
+                    <div className="flex items-center space-x-3 mb-6 md:mb-8">
+                      <div className="w-2 h-2 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"></div>
+                      <h3 className="text-lg md:text-xl font-light text-zinc-100 group-hover:text-amber-400 transition-colors duration-300">
+                        {category}
+                      </h3>
+                    </div>
+                    <div className="space-y-4 md:space-y-6">
+                      {skillList.map((skill, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <skill.icon className="h-4 w-4 md:h-5 md:w-5 text-amber-400 shrink-0" />
+                          <span className="text-sm md:text-base text-zinc-300 font-light">{skill.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            {/* Additional Skills */}
-            <div className={`mt-20 text-center ${isVisible.skills ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "1s" }}>
-              <h3 className="text-2xl font-light text-zinc-100 mb-8">Additional Expertise</h3>
-              <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
+            <div className={`mt-12 md:mt-20 text-center ${isVisible.skills ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "1s" }}>
+              <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">Additional Expertise</h3>
+              <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-4xl mx-auto px-4">
                 {[
                   "Problem Solving", "Algorithm Design", "System Architecture", "API Development",
-                  "Testing & Debugging", "Version Control", "Agile Development", "UI/UX Design",
-                  "Cloud Computing", "DevOps", "Data Structures", "Machine Learning"
+                  "Testing & Debugging", "Version Control", "Agile Development", "UI/UX Design"
                 ].map((skill, index) => (
                   <span
                     key={index}
-                    className="px-6 py-3 glass-effect border border-zinc-700 text-zinc-300 hover:border-amber-400/50 hover:text-amber-400 transition-all duration-300 text-sm font-light cursor-default"
-                    onMouseEnter={() => setIsHovering(true)}
-                    onMouseLeave={() => setIsHovering(false)}
+                    className="px-4 md:px-6 py-2 md:py-3 glass-effect border border-zinc-700 text-zinc-300 hover:border-amber-400/50 hover:text-amber-400 transition-all duration-300 text-xs md:text-sm font-light cursor-default rounded"
                   >
                     {skill}
                   </span>
@@ -877,25 +672,20 @@ const interests = [
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="py-32 bg-zinc-900/30 relative">
-        <div className="container mx-auto px-8">
+      <section id="projects" className="py-20 md:py-32 bg-zinc-900/30 relative">
+        <div className="container mx-auto px-6 md:px-8">
           <div className="max-w-7xl mx-auto">
-            <div
-              className={`text-center mb-20 ${
-                isVisible.projects ? "animate-fade-in-up" : "opacity-0"
-              }`}
-            >
-              <h2 className="text-4xl md:text-5xl font-thin mb-6 text-zinc-100">
-                Featured{" "}
-                <span className="text-gradient font-light">Projects</span>
+            <div className={`text-center mb-12 md:mb-20 ${isVisible.projects ? "animate-fade-in-up" : "opacity-0"}`}>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
+                Featured <span className="text-gradient font-light">Projects</span>
               </h2>
-              <div className="w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-6 rounded-full"></div>
-              <p className="text-zinc-400 font-light max-w-2xl mx-auto text-lg">
-                Showcasing innovation through code - each project tells a story of problem-solving and technical excellence
+              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
+              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
+                Showcasing innovation through code - each project tells a story of problem-solving
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-10">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
               {projects.map((project, index) => (
                 <Card
                   key={index}
@@ -903,8 +693,6 @@ const interests = [
                     isVisible.projects ? "animate-scale-in" : "opacity-0"
                   }`}
                   style={{ animationDelay: `${index * 0.3}s` }}
-                  onMouseEnter={() => setIsHovering(true)}
-                  onMouseLeave={() => setIsHovering(false)}
                 >
                   <div className="aspect-[4/3] overflow-hidden relative">
                     <img
@@ -913,87 +701,63 @@ const interests = [
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent"></div>
-                    <div className="absolute top-4 right-4 flex space-x-2">
+                    <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end">
                       <span className="px-3 py-1 bg-zinc-950/80 text-amber-400 text-xs font-medium rounded-full backdrop-blur-sm">
                         {project.category}
                       </span>
-                       <span className="px-3 py-1 bg-zinc-950/80 text-amber-400 text-xs font-medium rounded-full backdrop-blur-sm">
+                      <span className="px-3 py-1 bg-zinc-950/80 text-amber-400 text-xs font-medium rounded-full backdrop-blur-sm">
                         {project.category2}
                       </span>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-amber-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
 
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-light mb-4 text-zinc-100 group-hover:text-amber-400 transition-colors duration-300">
+                  <CardContent className="p-6 md:p-8">
+                    <h3 className="text-xl md:text-2xl font-light mb-3 md:mb-4 text-zinc-100 group-hover:text-amber-400 transition-colors duration-300">
                       {project.title}
                     </h3>
-                    <p className="text-zinc-400 mb-6 leading-relaxed font-light">
+                    <p className="text-sm md:text-base text-zinc-400 mb-4 md:mb-6 leading-relaxed font-light">
                       {project.description}
                     </p>
 
-                    <div className="flex flex-wrap gap-2 mb-8">
+                    <div className="flex flex-wrap gap-2 mb-6 md:mb-8">
                       {project.technologies.map((tech, techIndex) => (
                         <span
                           key={techIndex}
-                          className="px-3 py-1 border border-zinc-700 text-zinc-400 text-xs font-light hover:border-amber-400/50 hover:text-amber-400 transition-colors duration-300"
+                          className="px-3 py-1 border border-zinc-700 text-zinc-400 text-xs font-light hover:border-amber-400/50 hover:text-amber-400 transition-colors duration-300 rounded"
                         >
                           {tech}
                         </span>
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
                       <a
                         href={project.github}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-amber-400 hover:text-amber-300 transition-colors font-light text-sm group/link"
-                        onMouseEnter={() => setIsHovering(true)}
-                        onMouseLeave={() => setIsHovering(false)}
                       >
                         <Github className="mr-2 h-4 w-4" />
                         View Code
                         <ExternalLink className="ml-2 h-3 w-3 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
                       </a>
-                      
-                      {project.demo !== "#" && (
-                        <a
-                          href={project.demo}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-zinc-400 hover:text-amber-400 transition-colors font-light text-sm"
-                          onMouseEnter={() => setIsHovering(true)}
-                          onMouseLeave={() => setIsHovering(false)}
-                        >
-                          <Monitor className="mr-2 h-4 w-4" />
-                          Live Demo
-                        </a>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
-            {/* View More Projects */}
-            <div className={`text-center mt-16 ${isVisible.projects ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "1s" }}>
-                <a
-                  href="https://github.com/ishansaxena012"
-                  target="_blank"
-                  rel="noopener noreferrer"
+            <div className={`text-center mt-12 md:mt-16 ${isVisible.projects ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "1s" }}>
+              <a href="https://github.com/ishansaxena012" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-2 border-zinc-600 text-zinc-100 bg-transparent hover:bg-zinc-800/50 px-6 md:px-8 py-3 md:py-4 rounded hover-lift transition-all duration-500 group"
                 >
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-2 border-zinc-600 text-zinc-100 bg-transparent hover:bg-zinc-800/50 px-8 py-4 rounded-none hover-lift transition-all duration-500 group"
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
-              >
-                <Github className="mr-3 h-5 w-5 group-hover:rotate-12 transition-transform" />
-                View All Projects on GitHub
-                <ExternalLink className="ml-3 h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </Button>
+                  <Github className="mr-3 h-5 w-5 group-hover:rotate-12 transition-transform" />
+                  View All Projects
+                  <ExternalLink className="ml-3 h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                </Button>
               </a>
             </div>
           </div>
@@ -1001,74 +765,65 @@ const interests = [
       </section>
 
       {/* Education Section */}
-      <section id="education" className="py-32 bg-zinc-950 relative">
-        <div className="container mx-auto px-8">
+      <section id="education" className="py-20 md:py-32 bg-zinc-950 relative">
+        <div className="container mx-auto px-6 md:px-8">
           <div className="max-w-5xl mx-auto">
-            <div
-              className={`text-center mb-20 ${
-                isVisible.education ? "animate-fade-in-up" : "opacity-0"
-              }`}
-            >
-              <h2 className="text-4xl md:text-5xl font-thin mb-6 text-zinc-100">
-                Education{" "}
-                <span className="text-gradient font-light">Journey</span>
+            <div className={`text-center mb-12 md:mb-20 ${isVisible.education ? "animate-fade-in-up" : "opacity-0"}`}>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
+                Education <span className="text-gradient font-light">Journey</span>
               </h2>
-              <div className="w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-6 rounded-full"></div>
-              <p className="text-zinc-400 font-light max-w-2xl mx-auto text-lg">
-                Building a strong foundation through academic excellence and continuous learning
+              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
+              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
+                Building a strong foundation through academic excellence
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              {/* Main Education */}
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
               <Card
                 className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 hover-lift ${
                   isVisible.education ? "animate-slide-in-left" : "opacity-0"
                 }`}
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
               >
-                <CardContent className="p-10">
-                  <div className="flex items-start space-x-6">
-                    <div className="bg-gradient-to-br from-amber-400 to-amber-500 p-4 rounded-lg flex-shrink-0">
-                      <GraduationCap className="h-8 w-8 text-zinc-950" />
+                <CardContent className="p-6 md:p-10">
+                  <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
+                    <div className="bg-gradient-to-br from-amber-400 to-amber-500 p-3 md:p-4 rounded-lg flex-shrink-0">
+                      <GraduationCap className="h-6 w-6 md:h-8 md:w-8 text-zinc-950" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-3xl font-light text-zinc-100 mb-3">
+                      <h3 className="text-2xl md:text-3xl font-light text-zinc-100 mb-2 md:mb-3">
                         Bachelor of Technology
                       </h3>
-                      <p className="text-xl text-amber-400 mb-3 font-light">
+                      <p className="text-lg md:text-xl text-amber-400 mb-2 md:mb-3 font-light">
                         Computer Science and Engineering
                       </p>
                       <a
                         href="https://vitbhopal.ac.in/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-lg text-zinc-400 mb-6 font-light"
+                        className="text-base md:text-lg text-zinc-400 mb-4 md:mb-6 font-light hover:text-amber-400 transition-colors inline-block"
                       >
                         VIT Bhopal University
                       </a>
 
-
-                      <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div className="grid grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
                         <div className="flex items-center space-x-3">
-                          <Calendar className="h-5 w-5 text-amber-400" />
+                          <Calendar className="h-4 w-4 md:h-5 md:w-5 text-amber-400" />
                           <div>
-                            <p className="text-zinc-300 font-medium">Duration</p>
-                            <p className="text-zinc-400 text-sm">2023 - 2027</p>
+                            <p className="text-sm md:text-base text-zinc-300 font-medium">Duration</p>
+                            <p className="text-xs md:text-sm text-zinc-400">2023 - 2027</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                          <MapPin className="h-5 w-5 text-amber-400" />
+                          <MapPin className="h-4 w-4 md:h-5 md:w-5 text-amber-400" />
                           <div>
-                            <p className="text-zinc-300 font-medium">Location</p>
-                            <p className="text-zinc-400 text-sm">Bhopal, MP</p>
+                            <p className="text-sm md:text-base text-zinc-300 font-medium">Location</p>
+                            <p className="text-xs md:text-sm text-zinc-400">Bhopal, MP</p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <h4 className="text-lg font-medium text-zinc-100">Key Coursework</h4>
+                      <div className="space-y-3 md:space-y-4">
+                        <h4 className="text-base md:text-lg font-medium text-zinc-100">Key Coursework</h4>
                         <div className="flex flex-wrap gap-2">
                           {[
                             "Data Structures", "Algorithms", "Database Systems", "Web Development",
@@ -1076,7 +831,7 @@ const interests = [
                           ].map((course, index) => (
                             <span
                               key={index}
-                              className="px-3 py-1 bg-zinc-800/50 text-zinc-300 text-sm rounded-full border border-zinc-700"
+                              className="px-2 md:px-3 py-1 bg-zinc-800/50 text-zinc-300 text-xs md:text-sm rounded-full border border-zinc-700"
                             >
                               {course}
                             </span>
@@ -1088,10 +843,9 @@ const interests = [
                 </CardContent>
               </Card>
 
-              {/* Achievements & Certifications */}
-              <div className={`space-y-8 ${isVisible.education ? "animate-slide-in-right" : "opacity-0"}`} style={{ animationDelay: "0.3s" }}>
+              <div className={`space-y-6 md:space-y-8 ${isVisible.education ? "animate-slide-in-right" : "opacity-0"}`} style={{ animationDelay: "0.3s" }}>
                 <div>
-                  <h3 className="text-2xl font-light text-zinc-100 mb-6">
+                  <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-4 md:mb-6">
                     Achievements & <span className="text-gradient">Recognition</span>
                   </h3>
                   <div className="space-y-4">
@@ -1099,20 +853,17 @@ const interests = [
                       <Card
                         key={index}
                         className="glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group"
-                        onMouseEnter={() => setIsHovering(true)}
-                        onMouseLeave={() => setIsHovering(false)}
                       >
-                        <CardContent className="p-6">
+                        <CardContent className="p-4 md:p-6">
                           <div className="flex items-start space-x-4">
-                            <div className="bg-gradient-to-br from-amber-400/20 to-amber-500/20 p-3 rounded-lg">
-                              <achievement.icon className="h-6 w-6 text-amber-400" />
+                            <div className="bg-gradient-to-br from-amber-400/20 to-amber-500/20 p-2 md:p-3 rounded-lg">
+                              <achievement.icon className="h-5 w-5 md:h-6 md:w-6 text-amber-400" />
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-lg font-medium text-zinc-100 group-hover:text-amber-400 transition-colors">
+                              <h4 className="text-base md:text-lg font-medium text-zinc-100 group-hover:text-amber-400 transition-colors">
                                 {achievement.title}
                               </h4>
-                              <p className="text-zinc-400 text-sm mb-2">{achievement.description}</p>
-                              <span className="text-amber-400 text-xs font-medium">{achievement.year}</span>
+                              <p className="text-xs md:text-sm text-zinc-400 mt-1">{achievement.description}</p>
                             </div>
                           </div>
                         </CardContent>
@@ -1121,24 +872,21 @@ const interests = [
                   </div>
                 </div>
 
-                {/* Learning Stats */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                   {[
-                    { label: "CGPA", value: "8.8+", icon: Trophy },
+                    { label: "CGPA", value: "8.9+", icon: Trophy },
                     { label: "Projects", value: "10+", icon: Code },
                     { label: "Technologies", value: "20+", icon: Layers },
-                    { label: "Contributions", value: "100+", icon: Github }
+                    { label: "Contributions", value: "150+", icon: Github }
                   ].map((stat, index) => (
                     <Card
                       key={index}
                       className="glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-500 text-center group hover-lift"
-                      onMouseEnter={() => setIsHovering(true)}
-                      onMouseLeave={() => setIsHovering(false)}
                     >
-                      <CardContent className="p-6">
-                        <stat.icon className="h-8 w-8 text-amber-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                        <div className="text-2xl font-bold text-zinc-100 mb-1">{stat.value}</div>
-                        <div className="text-zinc-400 text-sm uppercase tracking-wide">{stat.label}</div>
+                      <CardContent className="p-4 md:p-6">
+                        <stat.icon className="h-6 w-6 md:h-8 md:w-8 text-amber-400 mx-auto mb-2 md:mb-3 group-hover:scale-110 transition-transform" />
+                        <div className="text-xl md:text-2xl font-bold text-zinc-100 mb-1">{stat.value}</div>
+                        <div className="text-zinc-400 text-xs uppercase tracking-wide">{stat.label}</div>
                       </CardContent>
                     </Card>
                   ))}
@@ -1150,45 +898,33 @@ const interests = [
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-32 bg-zinc-900/50 relative">
-        <div className="container mx-auto px-8">
+      <section id="contact" className="py-20 md:py-32 bg-zinc-900/50 relative">
+        <div className="container mx-auto px-6 md:px-8">
           <div className="max-w-6xl mx-auto">
-            <div
-              className={`text-center mb-20 ${
-                isVisible.contact ? "animate-fade-in-up" : "opacity-0"
-              }`}
-            >
-              <h2 className="text-4xl md:text-5xl font-thin mb-6 text-zinc-100">
-                Let's{" "}
-                <span className="text-gradient font-light">Connect</span>
+            <div className={`text-center mb-12 md:mb-20 ${isVisible.contact ? "animate-fade-in-up" : "opacity-0"}`}>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
+                Let's <span className="text-gradient font-light">Connect</span>
               </h2>
-              <div className="w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-6 rounded-full"></div>
-              <p className="text-zinc-400 font-light max-w-2xl mx-auto text-lg">
+              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
+              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
                 Ready to bring your ideas to life? Let's collaborate and create something amazing together.
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-16 items-start">
-              {/* Contact Form */}
-              <Card
-                className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 ${
-                  isVisible.contact ? "animate-slide-in-left" : "opacity-0"
-                }`}
-              >
-                <CardContent className="px-4 py-6 sm:px-6 md:px-8 lg:px-10">
-                  <h3 className="text-2xl font-light text-zinc-100 mb-8">
+            <div className="grid lg:grid-cols-2 gap-10 md:gap-16 items-start">
+              <Card className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 ${isVisible.contact ? "animate-slide-in-left" : "opacity-0"}`}>
+                <CardContent className="p-6 md:p-8 lg:p-10">
+                  <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">
                     Send a <span className="text-gradient">Message</span>
                   </h3>
 
-                  <form onSubmit={handleContactSubmit} className="space-y-6">
+                  <form onSubmit={handleContactSubmit} className="space-y-4 md:space-y-6">
                     <div>
                       <Input
                         placeholder="Your Name"
                         value={contactForm.name}
-                        onChange={(e) =>
-                          setContactForm((prev) => ({ ...prev, name: e.target.value }))
-                        }
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
+                        onChange={(e) => setContactForm((prev) => ({ ...prev, name: e.target.value }))}
+                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-11 md:h-12"
                         required
                       />
                     </div>
@@ -1198,10 +934,8 @@ const interests = [
                         type="email"
                         placeholder="Your Email"
                         value={contactForm.email}
-                        onChange={(e) =>
-                          setContactForm((prev) => ({ ...prev, email: e.target.value }))
-                        }
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-12"
+                        onChange={(e) => setContactForm((prev) => ({ ...prev, email: e.target.value }))}
+                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-11 md:h-12"
                         required
                       />
                     </div>
@@ -1211,9 +945,7 @@ const interests = [
                         placeholder="Your Message"
                         rows={6}
                         value={contactForm.message}
-                        onChange={(e) =>
-                          setContactForm((prev) => ({ ...prev, message: e.target.value }))
-                        }
+                        onChange={(e) => setContactForm((prev) => ({ ...prev, message: e.target.value }))}
                         className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 resize-none"
                         required
                       />
@@ -1223,33 +955,15 @@ const interests = [
                       type="submit"
                       size="lg"
                       disabled={isSending}
-                      className={`w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-semibold py-4 rounded-none hover-lift group ${
+                      className={`w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-semibold py-3 md:py-4 rounded hover-lift group ${
                         isSending ? "opacity-60 cursor-not-allowed" : ""
                       }`}
-                      onMouseEnter={() => setIsHovering(true)}
-                      onMouseLeave={() => setIsHovering(false)}
                     >
                       {isSending ? (
                         <span className="flex items-center justify-center">
-                          <svg
-                            className="animate-spin h-5 w-5 mr-2 text-zinc-950"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-                            ></path>
+                          <svg className="animate-spin h-5 w-5 mr-2 text-zinc-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                           Sending...
                         </span>
@@ -1260,55 +974,36 @@ const interests = [
                         </>
                       )}
                     </Button>
+                    <p className="text-xs md:text-sm text-zinc-400 text-center mt-2">* All fields are required</p>
                   </form>
                 </CardContent>
               </Card>
 
-
-
-              {/* Contact Information */}
-              <div className={`space-y-8 ${isVisible.contact ? "animate-slide-in-right" : "opacity-0"}`} style={{ animationDelay: "0.3s" }}>
+              <div className={`space-y-6 md:space-y-8 ${isVisible.contact ? "animate-slide-in-right" : "opacity-0"}`} style={{ animationDelay: "0.3s" }}>
                 <div>
-                  <h3 className="text-2xl font-light text-zinc-100 mb-8">
+                  <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">
                     Get in <span className="text-gradient">Touch</span>
                   </h3>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {[
-                      {
-                        icon: Mail,
-                        label: "Email",
-                        value: "06ishansaxena@gmail.com",
-                        href: "mailto:06ishansaxen@gmail.com"
-                      },
-                      {
-                        icon: Phone,
-                        label: "Phone",
-                        value: "+91 9205243543",
-                        href: "tel:+919205243543"
-                      },
-                      {
-                        icon: MapPin,
-                        label: "Location",
-                        value: "Ghaziabad, Uttar Pradesh, India",
-                        href: "#"
-                      }
+                      { icon: Mail, label: "Email", value: "06ishansaxena@gmail.com", href: "mailto:06ishansaxena@gmail.com" },
+                      { icon: Phone, label: "Phone", value: "+91 9205243543", href: "tel:+919205243543" },
+                      { icon: MapPin, label: "Location", value: "Ghaziabad, UP, India", href: "#" }
                     ].map((contact, index) => (
                       <a
                         key={index}
                         href={contact.href}
-                        className="flex items-center space-x-4 p-6 glass-effect border border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group hover-lift"
-                        onMouseEnter={() => setIsHovering(true)}
-                        onMouseLeave={() => setIsHovering(false)}
+                        className="flex items-center space-x-4 p-4 md:p-6 glass-effect border border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group hover-lift rounded-lg"
                       >
-                        <div className="bg-gradient-to-br from-amber-400/20 to-amber-500/20 p-3 rounded-lg group-hover:scale-110 transition-transform">
-                          <contact.icon className="h-6 w-6 text-amber-400" />
+                        <div className="bg-gradient-to-br from-amber-400/20 to-amber-500/20 p-2 md:p-3 rounded-lg group-hover:scale-110 transition-transform">
+                          <contact.icon className="h-5 w-5 md:h-6 md:w-6 text-amber-400" />
                         </div>
                         <div>
-                          <p className="text-zinc-400 text-sm uppercase tracking-wide">
+                          <p className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">
                             {contact.label}
                           </p>
-                          <p className="text-zinc-100 font-medium group-hover:text-amber-400 transition-colors">
+                          <p className="text-sm md:text-base text-zinc-100 font-medium group-hover:text-amber-400 transition-colors">
                             {contact.value}
                           </p>
                         </div>
@@ -1317,35 +1012,22 @@ const interests = [
                   </div>
                 </div>
 
-                {/* Social Links */}
                 <div>
-                  <h4 className="text-xl font-light text-zinc-100 mb-6">Connect Online</h4>
+                  <h4 className="text-lg md:text-xl font-light text-zinc-100 mb-4 md:mb-6">Connect Online</h4>
                   <div className="flex space-x-4">
                     {[
-                      {
-                        icon: Github,
-                        href: "https://github.com/ishansaxena012",
-                        label: "GitHub",
-                        color: "hover:bg-gray-800"
-                      },
-                      {
-                        icon: Linkedin,
-                        href: "https://www.linkedin.com/in/ishan-saxena-62781428b/",
-                        label: "LinkedIn",
-                        color: "hover:bg-blue-600"
-                      },
+                      { icon: Github, href: "https://github.com/ishansaxena012", label: "GitHub" },
+                      { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/", label: "LinkedIn" },
                     ].map((social, index) => (
                       <a
                         key={index}
                         href={social.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`p-4 glass-effect rounded-lg border border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group hover-lift ${social.color}`}
-                        onMouseEnter={() => setIsHovering(true)}
-                        onMouseLeave={() => setIsHovering(false)}
+                        className="p-3 md:p-4 glass-effect rounded-lg border border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group hover-lift"
                         title={social.label}
                       >
-                        <social.icon className="h-6 w-6 text-zinc-400 group-hover:text-amber-400 transition-colors group-hover:scale-110 transform duration-300" />
+                        <social.icon className="h-5 w-5 md:h-6 md:w-6 text-zinc-400 group-hover:text-amber-400 transition-colors group-hover:scale-110 transform duration-300" />
                       </a>
                     ))}
                   </div>
@@ -1357,33 +1039,30 @@ const interests = [
       </section>
 
       {/* Footer */}
-      <footer className="py-16 bg-zinc-950 border-t border-zinc-800">
-        <div className="container mx-auto px-8">
+      <footer className="py-12 md:py-16 bg-zinc-950 border-t border-zinc-800">
+        <div className="container mx-auto px-6 md:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center space-y-8 md:space-y-0">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
               <div className="text-center md:text-left">
-                <h3 className="text-2xl font-light text-zinc-100 mb-2">
+                <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-2">
                   <span className="text-gradient font-bold">ISHAN SAXENA</span>
                 </h3>
-                <p className="text-zinc-400 font-light">
-                  Crafting digital experiences with passion and precision :)
+                <p className="text-sm md:text-base text-zinc-400 font-light">
+                  Crafting digital experiences with passion :)
                 </p>
               </div>
 
               <div className="flex flex-col items-center md:items-end space-y-4">
-                <p className="text-zinc-500 text-sm">
+                <p className="text-zinc-500 text-xs md:text-sm">
                   © 2025 Ishan Saxena. All rights reserved.
                 </p>
               </div>
             </div>
 
-            {/* Back to Top */}
-            <div className="text-center mt-12">
+            <div className="text-center mt-8 md:mt-12">
               <button
                 onClick={() => scrollToSection("hero")}
                 className="group inline-flex flex-col items-center space-y-2 text-zinc-400 hover:text-amber-400 transition-all duration-300"
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
               >
                 <div className="p-3 glass-effect rounded-full border border-zinc-800 group-hover:border-amber-400/30 transition-all duration-300">
                   <ChevronDown className="h-5 w-5 rotate-180 group-hover:-translate-y-1 transition-transform" />
@@ -1399,31 +1078,19 @@ const interests = [
       <div className="fixed top-0 left-0 w-full h-1 bg-zinc-900 z-50">
         <div
           className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-150 ease-out"
-          style={{
-            width: `${(window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100}%`
-          }}
+          style={{ width: `${scrollProgress}%` }}
         ></div>
       </div>
 
       {/* Floating Action Button - Mobile */}
-      <div className="fixed bottom-8 right-8 z-40 md:hidden">
+      <div className="fixed bottom-6 right-6 z-40 md:hidden">
         <Button
           size="lg"
           className="w-14 h-14 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 shadow-2xl hover-lift"
           onClick={() => scrollToSection("contact")}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
         >
           <Mail className="h-6 w-6" />
         </Button>
-      </div>
-
-      {/* Loading Overlay */}
-      <div className="fixed inset-0 bg-zinc-950 z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-amber-400/20 border-t-amber-400 rounded-full animate-spin mb-4"></div>
-          <p className="text-zinc-400 font-light">Loading Excellence...</p>
-        </div>
       </div>
     </div>
   );
