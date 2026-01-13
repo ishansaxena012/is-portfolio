@@ -1054,7 +1054,7 @@ const interests = [
 
               <div className="flex flex-col items-center md:items-end space-y-4">
                 <p className="text-zinc-500 text-xs md:text-sm">
-                  © 2025 Ishan Saxena. All rights reserved.
+                  © 2026 Ishan Saxena. All rights reserved.
                 </p>
               </div>
             </div>
