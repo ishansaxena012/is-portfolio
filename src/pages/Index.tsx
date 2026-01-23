@@ -263,14 +263,14 @@ const Index = () => {
       category2: "Completed",
     },
     {
-      title: "PixelForge",
-      description: "Client-side AI image generator powered by Hugging Face Inference API, supporting multiple models, aspect ratios, API key input via localStorage, and theme toggle.",
-      technologies: ["JavaScript", "HTML", "CSS", "Hugging Face API"],
-      image: "pfa.webp",
-      github: "https://github.com/ishansaxena012/pixel-forge-ai",
-      demo: "#",
-      category: "AI/ML",
-      category2: "Completed",
+        title: "EvokAI",
+        description: "Voice-first AI journaling app that lets users capture thoughts naturally and receive meaningful AI-driven insights. Built with a focus on simplicity, privacy, and seamless backend–AI integration.",
+        technologies: ["Node.js", "Express", "MongoDB", "Speech-to-Text", "AI APIs"],
+        image: "evokai.png",
+        github: "https://github.com/ishansaxena012/voice-backend",
+        demo: "https://evokai-app.web.app/",
+        category: "GenAI",
+        category2: "Completed",
     },
   ];
 
@@ -551,7 +551,7 @@ const interests = [
                     <div className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">Projects</div>
                   </div>
                   <div className="text-center p-4 glass-effect rounded-lg">
-                    <div className="text-2xl md:text-3xl font-bold text-amber-400 mb-2">150+</div>
+                    <div className="text-2xl md:text-3xl font-bold text-amber-400 mb-2">160+</div>
                     <div className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">Commits</div>
                   </div>
                 </div>
@@ -730,18 +730,33 @@ const interests = [
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <a
-                        href={project.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-amber-400 hover:text-amber-300 transition-colors font-light text-sm group/link"
-                      >
-                        <Github className="mr-2 h-4 w-4" />
-                        View Code
-                        <ExternalLink className="ml-2 h-3 w-3 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
-                      </a>
-                    </div>
+                    <div className="flex items-center gap-6 flex-wrap">
+  {project.github && (
+    <a
+      href={project.github}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center text-amber-400 hover:text-amber-300 transition-colors font-light text-sm group/link"
+    >
+      <Github className="mr-2 h-4 w-4" />
+      View Code
+      <ExternalLink className="ml-2 h-3 w-3 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+    </a>
+  )}
+
+  {project.demo && project.demo !== "#" && (
+    <a
+      href={project.demo}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center text-zinc-300 hover:text-amber-400 transition-colors font-light text-sm group/link"
+    >
+      Live Demo
+      <ExternalLink className="ml-2 h-3 w-3 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+    </a>
+  )}
+</div>
+
                   </CardContent>
                 </Card>
               ))}
@@ -877,7 +892,7 @@ const interests = [
                     { label: "CGPA", value: "8.9+", icon: Trophy },
                     { label: "Projects", value: "10+", icon: Code },
                     { label: "Technologies", value: "20+", icon: Layers },
-                    { label: "Contributions", value: "150+", icon: Github }
+                    { label: "Contributions", value: "160+", icon: Github }
                   ].map((stat, index) => (
                     <Card
                       key={index}
