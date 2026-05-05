@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  User,
   Code,
   Database,
   Globe,
@@ -13,26 +12,18 @@ import {
   Linkedin,
   ExternalLink,
   Download,
-  ChevronDown,
   Monitor,
-  Smartphone,
-  Brain,
-  Trophy,
-  Calendar,
-  MapPin,
-  ArrowRight,
-  Star,
   Terminal,
   Layers,
   Server,
   Cpu,
   Send,
-  Award,
-  GraduationCap,
-  Phone,
+  Network,
+  Activity,
   Menu,
   X,
-  Activity,
+  ChevronRight,
+  HardDrive
 } from "lucide-react";
 import {
   Dialog,
@@ -41,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import ServerMetrics from "@/components/ServerMetrics";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("hero");
@@ -51,69 +43,10 @@ const Index = () => {
     email: "",
     message: ""
   });
-  const [isVisible, setIsVisible] = useState({
-    hero: false,
-    about: false,
-    skills: false,
-    projects: false,
-    education: false,
-    contact: false,
-  });
   const [isSending, setIsSending] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  const canvasRef = useRef(null);
-  const particles = useRef([]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    for (let i = 0; i < 50; i++) {
-      particles.current.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 2 + 1,
-        opacity: Math.random() * 0.5 + 0.2,
-      });
-    }
-
-    const animateParticles = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      particles.current.forEach((particle) => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        
-        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
-        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
-        
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(251, 191, 36, ${particle.opacity})`;
-        ctx.fill();
-      });
-      
-      requestAnimationFrame(animateParticles);
-    };
-    
-    animateParticles();
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
+  // Intersection Observer and scroll effects
   useEffect(() => {
     const handleScroll = () => {
       const sections = ["hero", "about", "skills", "projects", "education", "contact"];
@@ -138,33 +71,10 @@ const Index = () => {
       }
     };
 
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: "0px 0px -50px 0px",
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        setIsVisible((prev) => ({
-          ...prev,
-          [entry.target.id]: entry.isIntersecting,
-        }));
-      });
-    }, observerOptions);
-
-    const sections = ["hero", "about", "skills", "projects", "education", "contact"];
-    sections.forEach((section) => {
-      const element = document.getElementById(section);
-      if (element) observer.observe(element);
-    });
-
     window.addEventListener("scroll", handleScroll);
     handleScroll();
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      observer.disconnect();
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToSection = (sectionId) => {
@@ -194,195 +104,149 @@ const Index = () => {
         }
       );
 
-      alert("Message sent successfully!");
+      alert("SYSTEM_MSG: Payload delivered successfully.");
       setContactForm({ name: "", email: "", message: "" });
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Failed to send message. Please try again.");
+      alert("SYS_ERR: Connection timed out.");
     }
 
     setIsSending(false);
   };
 
   const navItems = [
-    { id: "hero", label: "Home" },
-    { id: "about", label: "About" },
-    { id: "skills", label: "Skills" },
-    { id: "projects", label: "Projects" },
-    { id: "education", label: "Education" },
-    { id: "contact", label: "Contact" },
+    { id: "hero", label: "00. Init" },
+    { id: "about", label: "01. Kernel" },
+    { id: "skills", label: "02. Stack" },
+    { id: "projects", label: "03. Deploys" },
+    { id: "education", label: "04. Training" },
+    { id: "contact", label: "05. Ping" },
   ];
 
   const skills = {
-    Languages: [
-      { name: "JavaScript", icon: Code },
-      { name: "Java", icon: Code },
-      { name: "C++", icon: Cpu },
-      { name: "Python", icon: Activity },
-      { name: "Kotlin", icon: Smartphone },
-    ],
-    Frontend: [
-      { name: "ReactJS", icon: Layers },
-      { name: "NextJS", icon: Globe },
-    ],
     Backend: [
       { name: "Node.js", icon: Server },
-      { name: "Express.js", icon: Server },
+      { name: "Express.js", icon: Activity },
+      { name: "REST APIs", icon: Network },
+    ],
+    Languages: [
+      { name: "C++", icon: Cpu },
+      { name: "Java", icon: Code },
+      { name: "Python", icon: Terminal },
+      { name: "JavaScript/TS", icon: Code },
     ],
     Database: [
+      { name: "PostgreSQL", icon: Database },
       { name: "MongoDB", icon: Database },
+      { name: "Redis", icon: HardDrive },
       { name: "MySQL", icon: Database },
     ],
     DevOps: [
       { name: "Docker", icon: Monitor },
-      { name: "AWS", icon: Monitor },
-      { name: "Git", icon: Monitor },
+      { name: "AWS", icon: Globe },
       { name: "Linux", icon: Terminal },
+      { name: "Git/CI-CD", icon: Layers },
     ],
   };
 
   const projects = [
     {
       title: "SentinelWatch",
-      description: "Real-time NIDS platform using C++ and Node.js for high-speed packet analysis and adaptive threat detection with minimal latency.",
-      technologies: ["C++", "NodeJS", "Express", "SQLite", "JS"],
+      description: "Low-latency NIDS platform using C++ and Node.js. Processes network packets at high speeds with adaptive threat detection algorithms.",
+      technologies: ["C++", "NodeJS", "Express", "SQLite"],
       image: "nids.png",
       github: "https://github.com/ishansaxena012/nids",
       demo: "#",
       category: "Security",
-      category2: "Completed",
+      category2: "Systems",
     },
     {
       title: "EchoChamber",
-      description: "Multi-persona AI chat app that generates responses in distinct tones—Optimistic, Sarcastic, Philosophical, and Practical—through a clean dark-themed UI.",
+      description: "Multi-persona AI engine interacting via diverse prompt-engineered tones. Backend handles rapid context switching and API orchestration.",
       technologies: ["Node.js", "Express", "React", "Gemini API"],
       image: "ec.webp",
       github: "https://github.com/ishansaxena012/echo-chamber",
       demo: "#",
-      category: "AI/Chat",
-      category2: "Completed",
+      category: "AI/LLM",
+      category2: "API",
     },
     {
         title: "EvokAI",
-        description: "Voice-first AI journaling app that lets users capture thoughts naturally and receive meaningful AI-driven insights. Built with a focus on simplicity, privacy, and seamless backend–AI integration.",
-        technologies: ["Node.js", "Express", "MongoDB", "Speech-to-Text", "AI APIs"],
+        description: "Voice-first AI journaling backend. Manages complex audio processing pipelines, speech-to-text integration, and real-time inference.",
+        technologies: ["Node.js", "Express", "MongoDB", "Audio API"],
         image: "evokai.png",
         github: "https://github.com/ishansaxena012/voice-backend",
         demo: "https://evokai-app.web.app/",
-        category: "GenAI",
-        category2: "Completed",
+        category: "Backend",
+        category2: "Pipeline",
     },
   ];
 
-const interests = [
-  { name: "Web Development", img: "/web.png", },
-  { name: "Android Development", img: "/android.png",  },
-  { name: "System Design", img: "/sd.jpeg",  },
-  { name: "Data Structures & Algorithm", img: "/dsa.png", },
-];
-
-
-  const achievements = [
-    {
-      title: "Academic Excellence",
-      description: "Maintained consistently high academic performance",
-      icon: Award,
-      year: ""
-    },
-    {
-      title: "Project Innovation",
-      description: "Developed multiple projects",
-      icon: Star,
-      year: ""
-    }
+  const interests = [
+    { name: "Distributed Systems", icon: Network },
+    { name: "System Design", icon: Server },
+    { name: "Data Structures", icon: Layers },
+    { name: "Cloud Architecture", icon: Globe },
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] text-zinc-300 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(50px); }
-          to { opacity: 1; transform: translateY(0); }
+        .bg-grid {
+          background-size: 40px 40px;
+          background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
         }
-        @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-50px); }
-          to { opacity: 1; transform: translateX(0); }
+        .text-cyan-glow {
+          text-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
         }
-        @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(50px); }
-          to { opacity: 1; transform: translateX(0); }
+        .border-tech {
+          border: 1px solid rgba(34, 211, 238, 0.2);
         }
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.8); }
-          to { opacity: 1; transform: scale(1); }
+        .border-tech:hover {
+          border-color: rgba(34, 211, 238, 0.6);
+          box-shadow: 0 0 20px rgba(34, 211, 238, 0.1);
         }
-        .animate-fade-in-up {
-          animation: fadeInUp 1s ease-out forwards;
+        .terminal-panel {
+          background: #111;
+          border: 1px solid #333;
         }
-        .animate-slide-in-left {
-          animation: slideInLeft 1s ease-out forwards;
-        }
-        .animate-slide-in-right {
-          animation: slideInRight 1s ease-out forwards;
-        }
-        .animate-scale-in {
-          animation: scaleIn 0.8s ease-out forwards;
-        }
-        .glass-effect {
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .glass-strong {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(25px);
-          -webkit-backdrop-filter: blur(25px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .text-gradient {
-          background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .hover-lift {
-          transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        .hover-lift:hover {
-          transform: translateY(-8px) scale(1.02);
+        .terminal-header {
+          background: #1a1a1a;
+          border-bottom: 1px solid #333;
         }
       `}</style>
 
-      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-30" />
+      {/* Grid Background */}
+      <div className="fixed inset-0 pointer-events-none z-0 bg-grid opacity-50 mix-blend-screen" />
+      <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/80 to-[#0a0a0a]" />
 
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-700 ${isScrolled ? "glass-strong py-4 shadow-2xl" : "bg-transparent py-8"}`}>
-        <div className="container mx-auto px-6 md:px-8">
+      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 border-b border-zinc-800/50 ${isScrolled ? "bg-[#0a0a0a]/90 backdrop-blur-md" : "bg-transparent"}`}>
+        <div className="container mx-auto px-6 md:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div className="font-light text-xl md:text-2xl tracking-wider text-zinc-100">
-              <span className="font-bold text-gradient">ISHAN SAXENA</span>
+            <div className="font-mono text-xl md:text-2xl font-bold tracking-tighter text-zinc-100 flex items-center gap-2">
+              <Terminal className="w-6 h-6 text-cyan-400" />
+              <span>IS<span className="text-cyan-400">_</span>DEV</span>
             </div>
             
-            <div className="hidden md:flex space-x-8 lg:space-x-12">
+            <div className="hidden md:flex space-x-8">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`text-sm font-light tracking-wide transition-all duration-500 hover:text-amber-400 relative group ${
-                    activeSection === item.id ? "text-amber-400" : "text-zinc-300"
+                  className={`text-xs font-mono tracking-wider transition-colors relative ${
+                    activeSection === item.id ? "text-cyan-400" : "text-zinc-500 hover:text-zinc-300"
                   }`}
                 >
+                  <span className={`${activeSection === item.id ? "opacity-100" : "opacity-0"} text-cyan-400 mr-1`}>&gt;</span>
                   {item.label}
-                  <span className={`absolute -bottom-1 left-0 h-px bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ${
-                    activeSection === item.id ? "w-full" : "w-0 group-hover:w-full"
-                  }`} />
                 </button>
               ))}
             </div>
 
             <button
-              className="md:hidden text-zinc-100 hover:text-amber-400 transition-colors"
+              className="md:hidden text-zinc-400 hover:text-cyan-400"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -390,16 +254,16 @@ const interests = [
           </div>
 
           {mobileMenuOpen && (
-            <div className="md:hidden mt-8 glass-strong rounded-lg p-6 animate-fade-in-up">
+            <div className="md:hidden mt-4 terminal-panel p-4 border-l-2 border-l-cyan-400">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`block w-full text-left py-3 text-sm font-light tracking-wide transition-all duration-300 hover:text-amber-400 ${
-                    activeSection === item.id ? "text-amber-400" : "text-zinc-300"
+                  className={`block w-full text-left py-3 text-sm font-mono tracking-wider ${
+                    activeSection === item.id ? "text-cyan-400" : "text-zinc-400"
                   }`}
                 >
-                  {item.label}
+                  <span className="text-cyan-400 mr-2">$</span>{item.label}
                 </button>
               ))}
             </div>
@@ -408,200 +272,163 @@ const interests = [
       </nav>
 
       {/* Hero Section */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center py-20 md:py-24">
-        <div className="relative z-10 container mx-auto px-6 sm:px-8 text-center">
-          <div className="max-w-5xl mx-auto">
-            <div className={`mb-8 md:mb-12 ${isVisible.hero ? "animate-scale-in" : "opacity-0"}`}>
-              <div className="relative inline-block group">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-amber-400/50 p-1 hover:border-amber-400/80 transition-all duration-500 hover:scale-105 shadow-xl">
-                  <img
-                    src="dp.webp"
-                    alt="Ishan Saxena"
-                    className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-700"
-                  />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 md:w-9 md:h-9 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-zinc-950 rounded-full"></div>
-                </div>
-              </div>
+      <section id="hero" className="relative min-h-screen flex items-center pt-20">
+        <div className="relative z-10 container mx-auto px-6 sm:px-8 w-full">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <div className="lg:col-span-7">
+              <div className="font-mono text-cyan-400 mb-6 flex items-center gap-3">
+              <span className="animate-pulse">_</span>
+              STATUS: SYSTEM_ONLINE
             </div>
 
-            <div className="text-center">
-              <div className={`mb-6 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.2s" }}>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-zinc-50 tracking-tight">
-                  ISHAN SAXENA
-                </h1>
-                <div className="text-lg md:text-2xl lg:text-3xl font-semibold text-amber-400 mb-4 md:mb-6 tracking-widest uppercase">
-                  SOFTWARE ENGINEER
-                </div>
-              </div>
-
-              <div className={`mb-8 md:mb-12 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.4s" }}>
-                <p className="text-base md:text-lg lg:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed px-4">
-  Engineering solutions. Eliminating bugs. Delivering clarity through code.
-</p>
-
-              </div>
+            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black mb-4 text-zinc-100 tracking-tighter leading-none">
+              ISHAN<br/>SAXENA.
+            </h1>
+            
+            <div className="text-xl md:text-3xl font-mono text-zinc-500 mb-8 tracking-tight">
+              &gt; BACKEND_ENGINEER / SYSTEMS_ARCHITECT
             </div>
 
-            <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center px-4 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.6s" }}>
+            <p className="text-base md:text-xl text-zinc-400 max-w-2xl leading-relaxed mb-12 border-l-2 border-zinc-800 pl-6">
+              Designing scalable APIs, optimizing databases, and building robust server architectures. 
+              Translating complex business logic into low-latency, high-availability systems.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                size="lg"
-                className="w-full sm:w-auto bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-orange-600 text-zinc-950 font-semibold px-6 md:px-8 py-3 md:py-4 rounded-md hover-lift shadow-2xl"
+                className="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 font-mono rounded-none px-8 py-6 h-auto"
                 onClick={() => scrollToSection("projects")}
               >
-                <span className="flex items-center whitespace-nowrap text-sm md:text-base">
-                  VIEW MY WORK
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </span>
+                <ChevronRight className="mr-2 h-4 w-4" />
+                EXECUTE /projects
               </Button>
 
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
-                    size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto border-2 border-zinc-700 text-zinc-100 bg-transparent hover:bg-zinc-800/60 px-6 md:px-8 py-3 md:py-4 rounded-md hover-lift transition-all duration-300"
+                    className="border-zinc-800 text-zinc-900 hover:bg-zinc-900 hover:text-zinc-100 font-mono rounded-none px-8 py-6 h-auto"
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    <span className="text-sm md:text-base">DOWNLOAD RESUME</span>
+                    PULL /resume.pdf
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="glass-strong border-zinc-700 text-zinc-100 max-w-md mx-4">
-                  <DialogHeader>
-                    <DialogTitle className="text-amber-400 text-xl">Download Resume</DialogTitle>
+                <DialogContent className="terminal-panel text-zinc-100 rounded-none border-zinc-800">
+                  <DialogHeader className="terminal-header -mx-6 -mt-6 p-4 mb-4">
+                    <DialogTitle className="text-cyan-400 font-mono flex items-center">
+                      <Terminal className="w-4 h-4 mr-2"/>
+                      download_manager.exe
+                    </DialogTitle>
                   </DialogHeader>
-                  <div className="mt-6 text-center space-y-4">
-                    <p className="text-zinc-300">Get my latest resume in PDF format.</p>
+                  <div className="space-y-4 font-mono text-sm text-zinc-400">
+                    <p>&gt; Initializing download sequence...</p>
+                    <p>&gt; Target: ishan_saxena_resume.pdf</p>
                     <a
                       href="/resume.pdf"
                       download
-                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-semibold rounded hover:from-amber-500 hover:to-orange-600 transition-all duration-300"
+                      className="mt-4 flex items-center justify-center w-full px-4 py-3 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 transition-colors"
                     >
                       <Download className="mr-2 h-4 w-4" />
-                      Download PDF
+                      [ CONFIRM_DOWNLOAD ]
                     </a>
                   </div>
                 </DialogContent>
               </Dialog>
             </div>
 
-            <div className={`flex justify-center space-x-5 sm:space-x-6 mt-12 md:mt-16 ${isVisible.hero ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "0.8s" }}>
+            <div className="flex space-x-6 mt-16">
               {[
-                { icon: Github, href: "https://github.com/ishansaxena012", label: "GitHub" },
-                { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/", label: "LinkedIn" },
-                { icon: Mail, href: "mailto:06ishansaxena@gmail.com", label: "Email" }
+                { icon: Github, href: "https://github.com/ishansaxena012", label: "github" },
+                { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/", label: "linkedin" },
+                { icon: Mail, href: "mailto:06ishansaxena@gmail.com", label: "email" }
               ].map((social, index) => (
                 <a
                   key={index}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 glass-effect rounded-full hover:bg-zinc-800/40 transition-all duration-300 group hover:scale-110"
-                  aria-label={social.label}
+                  className="text-zinc-500 hover:text-cyan-400 transition-colors flex items-center gap-2 font-mono text-sm"
                 >
-                  <social.icon className="h-5 w-5 text-zinc-400 group-hover:text-amber-400 transition-colors" />
+                  <social.icon className="h-5 w-5" />
+                  <span className="hidden sm:inline">/{social.label}</span>
                 </a>
               ))}
             </div>
           </div>
 
-          {/* <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2"> */}
-            {/* <ChevronDown className="h-6 w-6 text-amber-400 animate-bounce" /> */}
-          {/* </div> */}
+          {/* Right side Server Metrics */}
+          <div className="hidden lg:flex lg:col-span-5 justify-end relative w-full">
+            <div className="absolute inset-0 bg-cyan-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <ServerMetrics />
+          </div>
+        </div>
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 md:py-32 bg-zinc-900/50 relative">
+      <section id="about" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className={`grid lg:grid-cols-2 gap-12 lg:gap-20 items-center ${isVisible.about ? "animate-fade-in-up" : "opacity-0"}`}>
-              <div className="space-y-6 md:space-y-8">
-                <div>
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-6 md:mb-8 text-zinc-100">
-                    About <span className="text-gradient font-light">Me</span>
-                  </h2>
-                  <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mb-6 md:mb-8 rounded-full"></div>
-                </div>
+          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16">
+            <div className="space-y-8">
+              <div className="font-mono flex items-center gap-4 text-zinc-500 mb-8">
+                <span className="text-cyan-400">01.</span>
+                <div className="h-px bg-zinc-800 flex-1"></div>
+                <span>KERNEL_INFO</span>
+              </div>
+              
+              <h2 className="text-3xl md:text-5xl font-bold text-zinc-100 tracking-tight">
+                Architecting <br/>
+                <span className="text-cyan-400">Digital Infrastructure.</span>
+              </h2>
 
-                <div className="space-y-4 md:space-y-6">
-                  <p className="text-base md:text-lg text-zinc-300 leading-relaxed font-light">
-                    I'm a passionate third-year Computer Science student at VIT Bhopal, driven by the endless possibilities 
-                    of technology. My journey began with curiosity and has evolved into a deep commitment to creating 
-                    impactful digital solutions.
-                  </p>
-
-                  <p className="text-base md:text-lg text-zinc-300 leading-relaxed font-light">
-                    Every line of code I write is an opportunity to solve real-world problems and push the boundaries 
-                    of what's possible. I believe in clean architecture, scalable solutions, and user-centric design.
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-4 pt-4 md:pt-8">
-                  <div className="w-3 h-3 md:w-4 md:h-4 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"></div>
-                  <span className="text-sm md:text-base text-zinc-400 font-light tracking-wide">
-                    Always Learning • Always Building
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 md:gap-6 pt-6 md:pt-8">
-                  <div className="text-center p-4 glass-effect rounded-lg">
-                    <div className="text-2xl md:text-3xl font-bold text-amber-400 mb-2">10+</div>
-                    <div className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">Projects</div>
-                  </div>
-                  <div className="text-center p-4 glass-effect rounded-lg">
-                    <div className="text-2xl md:text-3xl font-bold text-amber-400 mb-2">160+</div>
-                    <div className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">Commits</div>
-                  </div>
-                </div>
+              <div className="space-y-6 text-zinc-400 text-lg leading-relaxed font-light">
+                <p>
+                  I'm a third-year Computer Science student at VIT Bhopal, with a deep-rooted passion for backend engineering, system design, and the invisible architecture that powers modern web applications.
+                </p>
+                <p>
+                  While frontend is what users see, the backend is where the real logic lives. I focus on writing clean, efficient, and scalable code—whether that means optimizing database queries, building real-time microservices, or designing RESTful APIs that just work.
+                </p>
               </div>
 
-              <div className="space-y-6 md:space-y-8">
-                <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">
-                  Core <span className="text-gradient">Interests</span>
-                </h3>
-                <div className="grid grid-cols-2 gap-4 md:gap-6">
-  {interests.map((interest, index) => (
-    <div
-      key={index}
-      className={`group relative p-4 md:p-6 glass-effect rounded-lg hover:glass-strong transition-all duration-700 hover-lift ${
-        isVisible.about ? "animate-scale-in" : "opacity-0"
-      }`}
-      style={{ animationDelay: `${index * 0.12}s` }}
-    >
-      <div className="flex flex-col items-center text-center space-y-3 md:space-y-4">
+              <div className="grid grid-cols-2 gap-4 font-mono">
+                <div className="terminal-panel p-6 border-l-2 border-l-cyan-400">
+                  <div className="text-3xl font-bold text-zinc-100 mb-2">10+</div>
+                  <div className="text-xs text-zinc-500 uppercase">Deployed Services</div>
+                </div>
+                <div className="terminal-panel p-6 border-l-2 border-l-cyan-400">
+                  <div className="text-3xl font-bold text-zinc-100 mb-2">170+</div>
+                  <div className="text-xs text-zinc-500 uppercase">Git Commits</div>
+                </div>
+              </div>
+            </div>
 
-        {/* Outer circular background */}
-        <div
-          className={`flex items-center justify-center rounded-full transition-transform duration-500 group-hover:scale-105
-            w-16 h-16 md:w-20 md:h-20
-          `}
-        >
-          {/* Inner plate */}
-          <div className="flex items-center justify-center rounded-full bg-white/10
-              w-12 h-12 md:w-16 md:h-16
-          ">
-            <img
-              src={interest.img}  
-              alt={interest.name}
-              className="object-contain w-8 h-8 md:w-10 md:h-10"
-              draggable={false}
-              onError={(e) => (e.currentTarget.style.display = "none")}
-            />
-          </div>
-        </div>
-
-        {/* Label */}
-        <span className="text-xs md:text-sm font-light text-zinc-300 group-hover:text-zinc-100 transition-colors duration-300">
-          {interest.name}
-        </span>
-      </div>
-    </div>
-  ))}
-</div>
-
-
+            <div>
+              <div className="terminal-panel h-full rounded-none overflow-hidden">
+                <div className="terminal-header p-3 flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                </div>
+                <div className="p-6 md:p-8 space-y-6">
+                  <div className="text-cyan-400 font-mono text-sm mb-4">Core Competencies:</div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {interests.map((interest, index) => (
+                      <div key={index} className="flex items-center gap-3 text-zinc-300 bg-zinc-900/50 p-4 border border-zinc-800">
+                        <interest.icon className="w-5 h-5 text-cyan-400" />
+                        <span className="font-mono text-sm">{interest.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-8 pt-8 border-t border-zinc-800">
+                    <div className="text-cyan-400 font-mono text-sm mb-4">Current Focus:</div>
+                    <ul className="space-y-3 font-mono text-sm text-zinc-400">
+                      <li className="flex items-center gap-2"><span className="text-cyan-400">&gt;</span> Deep diving into Microservices</li>
+                      <li className="flex items-center gap-2"><span className="text-cyan-400">&gt;</span> Advanced caching with Redis</li>
+                      <li className="flex items-center gap-2"><span className="text-cyan-400">&gt;</span> Golang for concurrent backends</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -609,169 +436,104 @@ const interests = [
       </section>
 
       {/* Skills Section */}
-      <section id="skills" className="py-20 md:py-32 bg-zinc-950 relative">
-        <div className="container mx-auto px-6 md:px-10">
-          <div className="max-w-7xl mx-auto">
-            <div className={`text-center mb-12 md:mb-20 ${isVisible.skills ? "animate-fade-in-up" : "opacity-0"}`}>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
-                Technical <span className="text-gradient font-light">Arsenal</span>
-              </h2>
-              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
-              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
-                A comprehensive toolkit honed through continuous learning and real-world application
-              </p>
+      <section id="skills" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
+        <div className="container mx-auto px-6 md:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
+              <span className="text-cyan-400">02.</span>
+              <div className="h-px bg-zinc-800 flex-1"></div>
+              <span>TECH_STACK</span>
             </div>
 
-            <div className={`grid sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8 ${isVisible.skills ? "animate-fade-in-up" : "opacity-0"}`}>
-              {Object.entries(skills).map(([category, skillList], categoryIndex) => (
-                <Card
-                  key={category}
-                  className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 group hover-lift ${
-                    isVisible.skills ? "animate-scale-in" : "opacity-0"
-                  }`}
-                  style={{ animationDelay: `${categoryIndex * 0.2}s` }}
-                >
-                  <CardContent className="p-6 md:p-8">
-                    <div className="flex items-center space-x-3 mb-6 md:mb-8">
-                      <div className="w-2 h-2 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"></div>
-                      <h3 className="text-lg md:text-xl font-light text-zinc-100 group-hover:text-amber-400 transition-colors duration-300">
-                        {category}
-                      </h3>
-                    </div>
-                    <div className="space-y-4 md:space-y-6">
-                      {skillList.map((skill, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <skill.icon className="h-4 w-4 md:h-5 md:w-5 text-amber-400 shrink-0" />
-                          <span className="text-sm md:text-base text-zinc-300 font-light">{skill.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Object.entries(skills).map(([category, skillList]) => (
+                <div key={category} className="terminal-panel border-tech transition-all duration-300">
+                  <div className="terminal-header p-4 flex items-center gap-3">
+                    <Server className="w-4 h-4 text-cyan-400" />
+                    <h3 className="font-mono text-sm text-zinc-100 uppercase tracking-wider">{category}</h3>
+                  </div>
+                  <div className="p-4 flex flex-col gap-2">
+                    {skillList.map((skill, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 hover:bg-zinc-800/50 transition-colors">
+                        <skill.icon className="w-4 h-4 text-zinc-500" />
+                        <span className="font-mono text-sm text-zinc-300">{skill.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </div>
-
-            <div className={`mt-12 md:mt-20 text-center ${isVisible.skills ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "1s" }}>
-              <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">Additional Expertise</h3>
-              <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-4xl mx-auto px-4">
-                {[
-                  "Problem Solving", "Algorithm Design", "System Architecture", "API Development",
-                  "Testing & Debugging", "Version Control", "Agile Development", "UI/UX Design"
-                ].map((skill, index) => (
-                  <span
-                    key={index}
-                    className="px-4 md:px-6 py-2 md:py-3 glass-effect border border-zinc-700 text-zinc-300 hover:border-amber-400/50 hover:text-amber-400 transition-all duration-300 text-xs md:text-sm font-light cursor-default rounded"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="py-20 md:py-32 bg-zinc-900/30 relative">
+      <section id="projects" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className={`text-center mb-12 md:mb-20 ${isVisible.projects ? "animate-fade-in-up" : "opacity-0"}`}>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
-                Featured <span className="text-gradient font-light">Projects</span>
-              </h2>
-              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
-              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
-                Showcasing innovation through code - each project tells a story of problem-solving
-              </p>
+          <div className="max-w-6xl mx-auto">
+            <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
+              <span className="text-cyan-400">03.</span>
+              <div className="h-px bg-zinc-800 flex-1"></div>
+              <span>ACTIVE_DEPLOYMENTS</span>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            <div className="space-y-16 md:space-y-24">
               {projects.map((project, index) => (
-                <Card
-                  key={index}
-                  className={`group relative overflow-hidden glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 hover-lift ${
-                    isVisible.projects ? "animate-scale-in" : "opacity-0"
-                  }`}
-                  style={{ animationDelay: `${index * 0.3}s` }}
-                >
-                  <div className="aspect-[4/3] overflow-hidden relative">
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent"></div>
-                    <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end">
-                      <span className="px-3 py-1 bg-zinc-950/80 text-amber-400 text-xs font-medium rounded-full backdrop-blur-sm">
-                        {project.category}
-                      </span>
-                      <span className="px-3 py-1 bg-zinc-950/80 text-amber-400 text-xs font-medium rounded-full backdrop-blur-sm">
-                        {project.category2}
-                      </span>
+                <div key={index} className="grid lg:grid-cols-12 gap-8 items-center group">
+                  
+                  {/* Image Column */}
+                  <div className={`lg:col-span-7 relative ${index % 2 !== 0 ? 'lg:order-2' : ''}`}>
+                    <div className="terminal-panel p-1 border-tech overflow-hidden">
+                      <div className="relative aspect-[16/9] group-hover:opacity-100 opacity-80 transition-opacity duration-500 bg-zinc-900">
+                        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay z-10"></div>
+                        <img
+                          src={project.image}
+                          alt={project.title}
+                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl md:text-2xl font-light mb-3 md:mb-4 text-zinc-100 group-hover:text-amber-400 transition-colors duration-300">
-                      {project.title}
-                    </h3>
-                    <p className="text-sm md:text-base text-zinc-400 mb-4 md:mb-6 leading-relaxed font-light">
+                  {/* Content Column */}
+                  <div className={`lg:col-span-5 relative z-20 ${index % 2 !== 0 ? 'lg:order-1 lg:text-right' : ''}`}>
+                    <div className="font-mono text-cyan-400 text-sm mb-2">Featured Project</div>
+                    <h3 className="text-2xl md:text-4xl font-bold text-zinc-100 mb-6">{project.title}</h3>
+                    
+                    <div className={`terminal-panel p-6 text-zinc-300 text-sm md:text-base leading-relaxed mb-6 ${index % 2 !== 0 ? 'lg:-mr-12' : 'lg:-ml-12'}`}>
                       {project.description}
-                    </p>
+                    </div>
 
-                    <div className="flex flex-wrap gap-2 mb-6 md:mb-8">
+                    <div className={`flex flex-wrap gap-3 font-mono text-xs text-zinc-500 mb-8 ${index % 2 !== 0 ? 'lg:justify-end' : ''}`}>
                       {project.technologies.map((tech, techIndex) => (
-                        <span
-                          key={techIndex}
-                          className="px-3 py-1 border border-zinc-700 text-zinc-400 text-xs font-light hover:border-amber-400/50 hover:text-amber-400 transition-colors duration-300 rounded"
-                        >
-                          {tech}
-                        </span>
+                        <span key={techIndex}>[{tech}]</span>
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-6 flex-wrap">
-  {project.github && (
-    <a
-      href={project.github}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center text-amber-400 hover:text-amber-300 transition-colors font-light text-sm group/link"
-    >
-      <Github className="mr-2 h-4 w-4" />
-      View Code
-      <ExternalLink className="ml-2 h-3 w-3 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
-    </a>
-  )}
-
-  {project.demo && project.demo !== "#" && (
-    <a
-      href={project.demo}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center text-zinc-300 hover:text-amber-400 transition-colors font-light text-sm group/link"
-    >
-      Live Demo
-      <ExternalLink className="ml-2 h-3 w-3 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
-    </a>
-  )}
-</div>
-
-                  </CardContent>
-                </Card>
+                    <div className={`flex items-center gap-6 ${index % 2 !== 0 ? 'lg:justify-end' : ''}`}>
+                      {project.github && (
+                        <a href={project.github} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-cyan-400 transition-colors flex items-center gap-2">
+                          <Github className="w-5 h-5" />
+                          <span className="font-mono text-sm">Source</span>
+                        </a>
+                      )}
+                      {project.demo && project.demo !== "#" && (
+                        <a href={project.demo} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-cyan-400 transition-colors flex items-center gap-2">
+                          <ExternalLink className="w-5 h-5" />
+                          <span className="font-mono text-sm">Live</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
 
-            <div className={`text-center mt-12 md:mt-16 ${isVisible.projects ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: "1s" }}>
+            <div className="text-center mt-24">
               <a href="https://github.com/ishansaxena012" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-zinc-600 text-zinc-100 bg-transparent hover:bg-zinc-800/50 px-6 md:px-8 py-3 md:py-4 rounded hover-lift transition-all duration-500 group"
-                >
-                  <Github className="mr-3 h-5 w-5 group-hover:rotate-12 transition-transform" />
-                  View All Projects
-                  <ExternalLink className="ml-3 h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <Button variant="outline" className="border-zinc-800 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 font-mono rounded-none px-8 py-6 h-auto">
+                  <Terminal className="mr-2 h-4 w-4" />
+                  ls -la /all-repositories
                 </Button>
               </a>
             </div>
@@ -780,131 +542,49 @@ const interests = [
       </section>
 
       {/* Education Section */}
-      <section id="education" className="py-20 md:py-32 bg-zinc-950 relative">
+      <section id="education" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className={`text-center mb-12 md:mb-20 ${isVisible.education ? "animate-fade-in-up" : "opacity-0"}`}>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
-                Education <span className="text-gradient font-light">Journey</span>
-              </h2>
-              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
-              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
-                Building a strong foundation through academic excellence
-              </p>
+          <div className="max-w-4xl mx-auto">
+            <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
+              <span className="text-cyan-400">04.</span>
+              <div className="h-px bg-zinc-800 flex-1"></div>
+              <span>TRAINING_DATA</span>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
-              <Card
-                className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 hover-lift ${
-                  isVisible.education ? "animate-slide-in-left" : "opacity-0"
-                }`}
-              >
-                <CardContent className="p-6 md:p-10">
-                  <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
-                    <div className="bg-gradient-to-br from-amber-400 to-amber-500 p-3 md:p-4 rounded-lg flex-shrink-0">
-                      <GraduationCap className="h-6 w-6 md:h-8 md:w-8 text-zinc-950" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl md:text-3xl font-light text-zinc-100 mb-2 md:mb-3">
-                        Bachelor of Technology
-                      </h3>
-                      <p className="text-lg md:text-xl text-amber-400 mb-2 md:mb-3 font-light">
-                        Computer Science and Engineering
-                      </p>
-                      <a
-                        href="https://vitbhopal.ac.in/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-base md:text-lg text-zinc-400 mb-4 md:mb-6 font-light hover:text-amber-400 transition-colors inline-block"
-                      >
-                        VIT Bhopal University
-                      </a>
-
-                      <div className="grid grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
-                        <div className="flex items-center space-x-3">
-                          <Calendar className="h-4 w-4 md:h-5 md:w-5 text-amber-400" />
-                          <div>
-                            <p className="text-sm md:text-base text-zinc-300 font-medium">Duration</p>
-                            <p className="text-xs md:text-sm text-zinc-400">2023 - 2027</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <MapPin className="h-4 w-4 md:h-5 md:w-5 text-amber-400" />
-                          <div>
-                            <p className="text-sm md:text-base text-zinc-300 font-medium">Location</p>
-                            <p className="text-xs md:text-sm text-zinc-400">Bhopal, MP</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 md:space-y-4">
-                        <h4 className="text-base md:text-lg font-medium text-zinc-100">Key Coursework</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            "Data Structures", "Algorithms", "Database Systems", "Web Development",
-                            "Machine Learning", "Software Engineering", "Computer Networks", "Operating Systems"
-                          ].map((course, index) => (
-                            <span
-                              key={index}
-                              className="px-2 md:px-3 py-1 bg-zinc-800/50 text-zinc-300 text-xs md:text-sm rounded-full border border-zinc-700"
-                            >
-                              {course}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className={`space-y-6 md:space-y-8 ${isVisible.education ? "animate-slide-in-right" : "opacity-0"}`} style={{ animationDelay: "0.3s" }}>
+            <div className="terminal-panel border-l-4 border-l-cyan-400 p-8">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
-                  <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-4 md:mb-6">
-                    Achievements & <span className="text-gradient">Recognition</span>
-                  </h3>
-                  <div className="space-y-4">
-                    {achievements.map((achievement, index) => (
-                      <Card
-                        key={index}
-                        className="glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group"
-                      >
-                        <CardContent className="p-4 md:p-6">
-                          <div className="flex items-start space-x-4">
-                            <div className="bg-gradient-to-br from-amber-400/20 to-amber-500/20 p-2 md:p-3 rounded-lg">
-                              <achievement.icon className="h-5 w-5 md:h-6 md:w-6 text-amber-400" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="text-base md:text-lg font-medium text-zinc-100 group-hover:text-amber-400 transition-colors">
-                                {achievement.title}
-                              </h4>
-                              <p className="text-xs md:text-sm text-zinc-400 mt-1">{achievement.description}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                  <h3 className="text-2xl font-bold text-zinc-100 mb-1">Bachelor of Technology in CS</h3>
+                  <a href="https://vitbhopal.ac.in/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono hover:underline">
+                    @ VIT Bhopal University
+                  </a>
+                </div>
+                <div className="font-mono text-zinc-500 mt-2 md:mt-0">2023 — 2027</div>
+              </div>
+
+              <div className="space-y-4 text-zinc-400">
+                <p>Currently pursuing a rigorous curriculum focused on software engineering principles, algorithm design, and modern computing paradigms.</p>
+                
+                <div className="pt-4 border-t border-zinc-800">
+                  <div className="font-mono text-zinc-500 mb-3">Key Modules:</div>
+                  <div className="flex flex-wrap gap-2 font-mono text-xs">
+                    {["Data Structures", "Algorithms", "Database Systems", "Machine Learning", "Operating Systems", "Computer Networks"].map((course, idx) => (
+                      <span key={idx} className="bg-zinc-900 border border-zinc-800 px-3 py-1 text-zinc-300">
+                        {course}
+                      </span>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
-                  {[
-                    { label: "CGPA", value: "8.9+", icon: Trophy },
-                    { label: "Projects", value: "10+", icon: Code },
-                    { label: "Technologies", value: "20+", icon: Layers },
-                    { label: "Contributions", value: "160+", icon: Github }
-                  ].map((stat, index) => (
-                    <Card
-                      key={index}
-                      className="glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-500 text-center group hover-lift"
-                    >
-                      <CardContent className="p-4 md:p-6">
-                        <stat.icon className="h-6 w-6 md:h-8 md:w-8 text-amber-400 mx-auto mb-2 md:mb-3 group-hover:scale-110 transition-transform" />
-                        <div className="text-xl md:text-2xl font-bold text-zinc-100 mb-1">{stat.value}</div>
-                        <div className="text-zinc-400 text-xs uppercase tracking-wide">{stat.label}</div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="pt-4 flex gap-8 font-mono text-sm">
+                  <div>
+                    <span className="text-zinc-500">CGPA: </span>
+                    <span className="text-cyan-400">8.9+</span>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Status: </span>
+                    <span className="text-cyan-400">In Progress</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -913,140 +593,86 @@ const interests = [
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 md:py-32 bg-zinc-900/50 relative">
+      <section id="contact" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className={`text-center mb-12 md:mb-20 ${isVisible.contact ? "animate-fade-in-up" : "opacity-0"}`}>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-thin mb-4 md:mb-6 text-zinc-100">
-                Let's <span className="text-gradient font-light">Connect</span>
-              </h2>
-              <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-amber-400 to-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
-              <p className="text-sm md:text-base lg:text-lg text-zinc-400 font-light max-w-2xl mx-auto px-4">
-                Ready to bring your ideas to life? Let's collaborate and create something amazing together.
+          <div className="max-w-4xl mx-auto">
+            <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
+              <span className="text-cyan-400">05.</span>
+              <div className="h-px bg-zinc-800 flex-1"></div>
+              <span>OPEN_CONNECTION</span>
+            </div>
+
+            <div className="text-center max-w-2xl mx-auto mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold text-zinc-100 mb-6">Ping Me.</h2>
+              <p className="text-zinc-400 text-lg">
+                Whether you have a question, a project idea, or just want to talk about system architecture, my inbox is open. I'll try my best to get back to you!
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-10 md:gap-16 items-start">
-              <Card className={`glass-effect border-zinc-800 hover:border-amber-400/30 transition-all duration-700 ${isVisible.contact ? "animate-slide-in-left" : "opacity-0"}`}>
-                <CardContent className="p-6 md:p-8 lg:p-10">
-                  <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">
-                    Send a <span className="text-gradient">Message</span>
-                  </h3>
-
-                  <form onSubmit={handleContactSubmit} className="space-y-4 md:space-y-6">
-                    <div>
-                      <Input
-                        placeholder="Your Name"
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm((prev) => ({ ...prev, name: e.target.value }))}
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-11 md:h-12"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Input
-                        type="email"
-                        placeholder="Your Email"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm((prev) => ({ ...prev, email: e.target.value }))}
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 h-11 md:h-12"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Textarea
-                        placeholder="Your Message"
-                        rows={6}
-                        value={contactForm.message}
-                        onChange={(e) => setContactForm((prev) => ({ ...prev, message: e.target.value }))}
-                        className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-amber-400 focus:ring-amber-400 resize-none"
-                        required
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      size="lg"
-                      disabled={isSending}
-                      className={`w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 font-semibold py-3 md:py-4 rounded hover-lift group ${
-                        isSending ? "opacity-60 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      {isSending ? (
-                        <span className="flex items-center justify-center">
-                          <svg className="animate-spin h-5 w-5 mr-2 text-zinc-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Sending...
-                        </span>
-                      ) : (
-                        <>
-                          <Send className="mr-3 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                          Send Message
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-xs md:text-sm text-zinc-400 text-center mt-2">* All fields are required</p>
-                  </form>
-                </CardContent>
-              </Card>
-
-              <div className={`space-y-6 md:space-y-8 ${isVisible.contact ? "animate-slide-in-right" : "opacity-0"}`} style={{ animationDelay: "0.3s" }}>
-                <div>
-                  <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-6 md:mb-8">
-                    Get in <span className="text-gradient">Touch</span>
-                  </h3>
+            <div className="terminal-panel max-w-2xl mx-auto">
+              <div className="terminal-header p-3 flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-zinc-500" />
+                <span className="font-mono text-xs text-zinc-500">message_protocol.sh</span>
+              </div>
+              <div className="p-6 md:p-8">
+                <form onSubmit={handleContactSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="font-mono text-sm text-cyan-400 flex items-center gap-2">
+                      <span className="text-zinc-500">$</span> set EMAIL
+                    </label>
+                    <Input
+                      type="email"
+                      required
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                      className="bg-zinc-900 border-zinc-800 text-zinc-100 font-mono rounded-none focus-visible:ring-cyan-500/50"
+                      placeholder="user@host.com"
+                    />
+                  </div>
                   
-                  <div className="space-y-4 md:space-y-6">
-                    {[
-                      { icon: Mail, label: "Email", value: "06ishansaxena@gmail.com", href: "mailto:06ishansaxena@gmail.com" },
-                      { icon: Phone, label: "Phone", value: "+91 9205243543", href: "tel:+919205243543" },
-                      { icon: MapPin, label: "Location", value: "Ghaziabad, UP, India", href: "#" }
-                    ].map((contact, index) => (
-                      <a
-                        key={index}
-                        href={contact.href}
-                        className="flex items-center space-x-4 p-4 md:p-6 glass-effect border border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group hover-lift rounded-lg"
-                      >
-                        <div className="bg-gradient-to-br from-amber-400/20 to-amber-500/20 p-2 md:p-3 rounded-lg group-hover:scale-110 transition-transform">
-                          <contact.icon className="h-5 w-5 md:h-6 md:w-6 text-amber-400" />
-                        </div>
-                        <div>
-                          <p className="text-xs md:text-sm text-zinc-400 uppercase tracking-wide">
-                            {contact.label}
-                          </p>
-                          <p className="text-sm md:text-base text-zinc-100 font-medium group-hover:text-amber-400 transition-colors">
-                            {contact.value}
-                          </p>
-                        </div>
-                      </a>
-                    ))}
+                  <div className="space-y-2">
+                    <label className="font-mono text-sm text-cyan-400 flex items-center gap-2">
+                      <span className="text-zinc-500">$</span> set NAME
+                    </label>
+                    <Input
+                      type="text"
+                      required
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                      className="bg-zinc-900 border-zinc-800 text-zinc-100 font-mono rounded-none focus-visible:ring-cyan-500/50"
+                      placeholder="Guest User"
+                    />
                   </div>
-                </div>
 
-                <div>
-                  <h4 className="text-lg md:text-xl font-light text-zinc-100 mb-4 md:mb-6">Connect Online</h4>
-                  <div className="flex space-x-4">
-                    {[
-                      { icon: Github, href: "https://github.com/ishansaxena012", label: "GitHub" },
-                      { icon: Linkedin, href: "https://www.linkedin.com/in/ishan-saxena-62781428b/", label: "LinkedIn" },
-                    ].map((social, index) => (
-                      <a
-                        key={index}
-                        href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 md:p-4 glass-effect rounded-lg border border-zinc-800 hover:border-amber-400/30 transition-all duration-500 group hover-lift"
-                        title={social.label}
-                      >
-                        <social.icon className="h-5 w-5 md:h-6 md:w-6 text-zinc-400 group-hover:text-amber-400 transition-colors group-hover:scale-110 transform duration-300" />
-                      </a>
-                    ))}
+                  <div className="space-y-2">
+                    <label className="font-mono text-sm text-cyan-400 flex items-center gap-2">
+                      <span className="text-zinc-500">$</span> set PAYLOAD
+                    </label>
+                    <Textarea
+                      required
+                      rows={5}
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      className="bg-zinc-900 border-zinc-800 text-zinc-100 font-mono rounded-none focus-visible:ring-cyan-500/50 resize-none"
+                      placeholder="Write your message..."
+                    />
                   </div>
-                </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSending}
+                    className="w-full bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 font-mono rounded-none h-12"
+                  >
+                    {isSending ? (
+                      <span>TRANSMITTING...</span>
+                    ) : (
+                      <span className="flex items-center">
+                        <Send className="mr-2 h-4 w-4" />
+                        SEND_PAYLOAD
+                      </span>
+                    )}
+                  </Button>
+                </form>
               </div>
             </div>
           </div>
@@ -1054,58 +680,23 @@ const interests = [
       </section>
 
       {/* Footer */}
-      <footer className="py-12 md:py-16 bg-zinc-950 border-t border-zinc-800">
-        <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-              <div className="text-center md:text-left">
-                <h3 className="text-xl md:text-2xl font-light text-zinc-100 mb-2">
-                  <span className="text-gradient font-bold">ISHAN SAXENA</span>
-                </h3>
-                <p className="text-sm md:text-base text-zinc-400 font-light">
-                  Crafting digital experiences with passion :)
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center md:items-end space-y-4">
-                <p className="text-zinc-500 text-xs md:text-sm">
-                  © 2026 Ishan Saxena. All rights reserved.
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center mt-8 md:mt-12">
-              <button
-                onClick={() => scrollToSection("hero")}
-                className="group inline-flex flex-col items-center space-y-2 text-zinc-400 hover:text-amber-400 transition-all duration-300"
-              >
-                <div className="p-3 glass-effect rounded-full border border-zinc-800 group-hover:border-amber-400/30 transition-all duration-300">
-                  <ChevronDown className="h-5 w-5 rotate-180 group-hover:-translate-y-1 transition-transform" />
-                </div>
-                <span className="text-xs uppercase tracking-widest">Back to Top</span>
-              </button>
-            </div>
-          </div>
+      <footer className="py-8 relative z-10 bg-[#0a0a0a] border-t border-zinc-900">
+        <div className="container mx-auto px-6 text-center">
+          <p className="font-mono text-zinc-600 text-sm">
+            Designed & Built by <span className="text-cyan-400/70">Ishan Saxena</span>
+          </p>
+          <p className="font-mono text-zinc-700 text-xs mt-2">
+            &copy; {new Date().getFullYear()} // ALL_RIGHTS_RESERVED
+          </p>
         </div>
       </footer>
 
       {/* Scroll Progress Indicator */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-zinc-900 z-50">
+      <div className="fixed top-0 left-0 w-full h-[2px] bg-zinc-900 z-50">
         <div
-          className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-150 ease-out"
-          style={{ width: `${scrollProgress}%` }}
+          className="h-full bg-cyan-400 transition-all duration-150 ease-out"
+          style={{ width: `${scrollProgress}%`, boxShadow: '0 0 10px rgba(34,211,238,0.5)' }}
         ></div>
-      </div>
-
-      {/* Floating Action Button - Mobile */}
-      <div className="fixed bottom-6 right-6 z-40 md:hidden">
-        <Button
-          size="lg"
-          className="w-14 h-14 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-zinc-950 shadow-2xl hover-lift"
-          onClick={() => scrollToSection("contact")}
-        >
-          <Mail className="h-6 w-6" />
-        </Button>
       </div>
     </div>
   );
