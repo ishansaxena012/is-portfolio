@@ -35,6 +35,7 @@ import {
 import ServerMetrics from "@/components/ServerMetrics";
 import { ScrambleText } from "@/components/ScrambleText";
 import { Reveal } from "@/components/Reveal";
+import { DataFlowBackground } from "@/components/DataFlowBackground";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("hero");
@@ -133,6 +134,7 @@ const Index = () => {
   const skills = {
     Backend: [
       { name: "Node.js", icon: Server },
+      { name: "NestJS", icon: Server },
       { name: "Express.js", icon: Activity },
       { name: "REST APIs", icon: Network },
     ],
@@ -144,6 +146,7 @@ const Index = () => {
     ],
     Database: [
       { name: "PostgreSQL", icon: Database },
+      { name: "Prisma", icon: Database },
       { name: "MongoDB", icon: Database },
       { name: "Redis", icon: HardDrive },
       { name: "MySQL", icon: Database },
@@ -282,11 +285,12 @@ const Index = () => {
       <section id="hero" className="relative min-h-screen flex items-center pt-20" onMouseMove={handleMouseMove}>
         {/* Mouse tracking glow */}
         <div 
-          className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300 hidden lg:block"
+          className="pointer-events-none fixed inset-0 z-10 transition-opacity duration-300 hidden lg:block"
           style={{
             background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(34,211,238,0.06), transparent 40%)`
           }}
         />
+        <DataFlowBackground />
         <div className="relative z-10 container mx-auto px-6 sm:px-8 w-full">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-7">
