@@ -171,14 +171,15 @@ const Index = () => {
       category2: "Systems",
     },
     {
-      title: "EchoChamber",
-      description: "Multi-persona AI engine interacting via diverse prompt-engineered tones. Backend handles rapid context switching and API orchestration.",
-      technologies: ["Node.js", "Express", "React", "Gemini API"],
-      image: "ec.webp",
-      github: "https://github.com/ishansaxena012/echo-chamber",
-      demo: "#",
-      category: "AI/LLM",
-      category2: "API",
+      title: "Lakshmi Didi",
+      description: "A multilingual voice-first financial assistant built for simplified personal finance guidance, featuring persona-driven conversations, contextual memory, and structured financial insights through an end-to-end conversational AI pipeline.",
+      technologies: ["MongoDB", "Express.js", "Node.js", "Gemini API", "Redis", "Web Speech API"],
+      images: ["fin2.png", "fin.png", "fin3.png"],
+      isMobileImage: true,
+      github: "https://github.com/ishansaxena012/financial-assistance-platform",
+      demo: "https://financial-assistance-platform-ten.vercel.app/",
+      category: "Backend Systems",
+      category2: "Conversational AI"
     },
     {
         title: "EvokAI",
@@ -503,13 +504,30 @@ const Index = () => {
                   {/* Image Column */}
                   <div className={`lg:col-span-7 relative ${index % 2 !== 0 ? 'lg:order-2' : ''}`}>
                     <div className="terminal-panel p-1 border-tech overflow-hidden">
-                      <div className="relative aspect-[16/9] group-hover:opacity-100 opacity-80 transition-opacity duration-500 bg-zinc-900">
-                        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay z-10"></div>
-                        <img
-                          src={project.image}
-                          alt={project.title}
-                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                        />
+                      <div className="relative aspect-[16/9] group-hover:opacity-100 opacity-80 transition-opacity duration-500 bg-zinc-900 flex items-center justify-center overflow-hidden">
+                        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay z-10 pointer-events-none"></div>
+                        {project.images ? (
+                          <div className="flex w-full h-full justify-center items-center gap-2 p-2">
+                            {project.images.map((imgSrc, imgIdx) => (
+                              <img
+                                key={imgIdx}
+                                src={imgSrc}
+                                alt={`${project.title} ${imgIdx + 1}`}
+                                className={`h-[85%] object-contain transition-all duration-700 rounded-md shadow-2xl ${
+                                  imgIdx === 1 
+                                    ? 'z-20 scale-105 group-hover:scale-110' 
+                                    : 'z-10 scale-95 opacity-60 group-hover:opacity-100 group-hover:scale-100'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <img
+                            src={project.image}
+                            alt={project.title}
+                            className={`w-full h-full transition-all duration-700 ${project.isMobileImage ? 'object-contain py-2' : 'object-cover'}`}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
