@@ -77,8 +77,8 @@ const MetricBar = ({
       </div>
       <div className="h-[3px] bg-zinc-800 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]"
-          style={{ width: `${pct}%`, background: color }}
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, background: color, transitionTimingFunction: "cubic-bezier(0.4,0,0.2,1)" }}
         />
       </div>
     </div>

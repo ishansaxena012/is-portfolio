@@ -33,9 +33,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ServerMetrics from "@/components/ServerMetrics";
+import { ScrambleText } from "@/components/ScrambleText";
+import { Reveal } from "@/components/Reveal";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("hero");
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  };
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactForm, setContactForm] = useState({
@@ -272,7 +279,14 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section id="hero" className="relative min-h-screen flex items-center pt-20">
+      <section id="hero" className="relative min-h-screen flex items-center pt-20" onMouseMove={handleMouseMove}>
+        {/* Mouse tracking glow */}
+        <div 
+          className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300 hidden lg:block"
+          style={{
+            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(34,211,238,0.06), transparent 40%)`
+          }}
+        />
         <div className="relative z-10 container mx-auto px-6 sm:px-8 w-full">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-7">
@@ -281,12 +295,13 @@ const Index = () => {
               STATUS: SYSTEM_ONLINE
             </div>
 
-            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black mb-4 text-zinc-100 tracking-tighter leading-none">
-              ISHAN<br/>SAXENA.
+            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black mb-4 text-zinc-100 tracking-tighter leading-none flex flex-col">
+              <span className="glitch w-fit" data-text="ISHAN">ISHAN</span>
+              <span className="glitch w-fit" data-text="SAXENA.">SAXENA.</span>
             </h1>
             
             <div className="text-xl md:text-3xl font-mono text-zinc-500 mb-8 tracking-tight">
-              &gt; BACKEND_ENGINEER / SYSTEMS_ARCHITECT
+              &gt; <span className="typewriter">BACKEND_ENGINEER / SYSTEMS_ARCHITECT</span>
             </div>
 
             <p className="text-base md:text-xl text-zinc-400 max-w-2xl leading-relaxed mb-12 border-l-2 border-zinc-800 pl-6">
@@ -368,12 +383,12 @@ const Index = () => {
       {/* About Section */}
       <section id="about" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16">
+          <Reveal className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16">
             <div className="space-y-8">
               <div className="font-mono flex items-center gap-4 text-zinc-500 mb-8">
                 <span className="text-cyan-400">01.</span>
                 <div className="h-px bg-zinc-800 flex-1"></div>
-                <span>KERNEL_INFO</span>
+                <ScrambleText text="KERNEL_INFO" />
               </div>
               
               <h2 className="text-3xl md:text-5xl font-bold text-zinc-100 tracking-tight">
@@ -431,18 +446,18 @@ const Index = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Skills Section */}
       <section id="skills" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-6xl mx-auto">
+          <Reveal className="max-w-6xl mx-auto">
             <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
               <span className="text-cyan-400">02.</span>
               <div className="h-px bg-zinc-800 flex-1"></div>
-              <span>TECH_STACK</span>
+              <ScrambleText text="TECH_STACK" />
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -463,18 +478,18 @@ const Index = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Projects Section */}
       <section id="projects" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-6xl mx-auto">
+          <Reveal className="max-w-6xl mx-auto">
             <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
               <span className="text-cyan-400">03.</span>
               <div className="h-px bg-zinc-800 flex-1"></div>
-              <span>ACTIVE_DEPLOYMENTS</span>
+              <ScrambleText text="ACTIVE_DEPLOYMENTS" />
             </div>
 
             <div className="space-y-16 md:space-y-24">
@@ -537,18 +552,18 @@ const Index = () => {
                 </Button>
               </a>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Education Section */}
       <section id="education" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-4xl mx-auto">
+          <Reveal className="max-w-4xl mx-auto">
             <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
               <span className="text-cyan-400">04.</span>
               <div className="h-px bg-zinc-800 flex-1"></div>
-              <span>TRAINING_DATA</span>
+              <ScrambleText text="TRAINING_DATA" />
             </div>
 
             <div className="terminal-panel border-l-4 border-l-cyan-400 p-8">
@@ -588,18 +603,18 @@ const Index = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Contact Section */}
       <section id="contact" className="py-24 relative border-t border-zinc-900 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 md:px-8">
-          <div className="max-w-4xl mx-auto">
+          <Reveal className="max-w-4xl mx-auto">
             <div className="font-mono flex items-center gap-4 text-zinc-500 mb-12">
               <span className="text-cyan-400">05.</span>
               <div className="h-px bg-zinc-800 flex-1"></div>
-              <span>OPEN_CONNECTION</span>
+              <ScrambleText text="OPEN_CONNECTION" />
             </div>
 
             <div className="text-center max-w-2xl mx-auto mb-16">
@@ -675,7 +690,7 @@ const Index = () => {
                 </form>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
