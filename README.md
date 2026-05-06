@@ -1,1 +1,1 @@
-Powered by coffee and code :)
+No technical stuff this time, just explore the page :)
