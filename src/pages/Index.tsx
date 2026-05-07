@@ -173,7 +173,7 @@ const Index = () => {
     {
       title: "Lakshmi Didi",
       description: "A multilingual voice-first financial assistant built for simplified personal finance guidance, featuring persona-driven conversations, contextual memory, and structured financial insights through an end-to-end conversational AI pipeline.",
-      technologies: ["MongoDB", "Express.js", "Node.js", "Gemini API", "Redis", "Web Speech API"],
+      technologies: ["MongoDB", "Express.js", "Node.js", "Gemini API", "Redis", "SarvamAI API "],
       images: ["fin2.png", "fin.png", "fin3.png"],
       isMobileImage: true,
       github: "https://github.com/ishansaxena012/financial-assistance-platform",
