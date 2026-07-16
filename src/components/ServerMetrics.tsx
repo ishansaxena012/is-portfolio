@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -6,7 +6,8 @@ interface Metrics {
   cpu: number;
   memory: number;
   activeConnections: number;
-  latency: number;
+  latencyP50: number;
+  latencyP99: number;
 }
 
 interface LogEntry {
@@ -28,23 +29,45 @@ const nowTime = () => {
 
 const ENDPOINTS = [
   "/api/v1/users",
-  "/api/v1/auth",
+  "/api/v1/auth/refresh",
   "/health",
-  "/metrics",
-  "/api/v1/data",
   "/api/v1/orders",
+  "/api/v1/orders/:id",
+  "/api/v1/webhooks/stripe",
 ];
-const METHODS = ["GET", "GET", "GET", "POST", "POST", "PUT"];
-const OUTCOMES: { status: string; cls: LogEntry["cls"] }[] = [
-  { status: "200", cls: "ok" },
-  { status: "200", cls: "ok" },
-  { status: "201", cls: "ok" },
-  { status: "200", cls: "ok" },
-  { status: "404", cls: "warn" },
-  { status: "500", cls: "err" },
+const METHODS = ["GET", "GET", "GET", "POST", "PATCH"];
+
+// Weighted so failures are the exception, not one-in-six — that's what makes
+// a log feel like a real service instead of a demo cycling through states.
+const OUTCOME_WEIGHTS: { status: string; cls: LogEntry["cls"]; weight: number }[] = [
+  { status: "200", cls: "ok", weight: 40 },
+  { status: "201", cls: "ok", weight: 8 },
+  { status: "304", cls: "ok", weight: 10 },
+  { status: "404", cls: "warn", weight: 4 },
+  { status: "429", cls: "warn", weight: 2 },
+  { status: "500", cls: "err", weight: 1 },
 ];
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+const pickWeighted = () => {
+  const total = OUTCOME_WEIGHTS.reduce((s, o) => s + o.weight, 0);
+  let r = Math.random() * total;
+  for (const o of OUTCOME_WEIGHTS) {
+    if ((r -= o.weight) <= 0) return o;
+  }
+  return OUTCOME_WEIGHTS[0];
+};
+
+// Exponential moving average toward a target, with small noise — reads as a
+// system under real, slowly shifting load rather than a random number
+// reroll on every tick.
+const drift = (current: number, target: number, noise: number, pull = 0.15) => {
+  const next = current + (target - current) * pull + (Math.random() - 0.5) * noise;
+  return next;
+};
+
+const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -77,8 +100,8 @@ const MetricBar = ({
       </div>
       <div className="h-[3px] bg-zinc-800 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, background: color, transitionTimingFunction: "cubic-bezier(0.4,0,0.2,1)" }}
+          className="h-full rounded-full transition-all duration-1000 ease-out"
+          style={{ width: `${pct}%`, background: color }}
         />
       </div>
     </div>
@@ -110,19 +133,13 @@ const LogLine = ({ entry }: { entry: LogEntry }) => {
     entry.cls === "ok"
       ? "text-emerald-400"
       : entry.cls === "warn"
-      ? "text-amber-400"
-      : "text-red-400";
-  const methodColor =
-    entry.cls === "ok"
-      ? "text-emerald-400"
-      : entry.cls === "warn"
-      ? "text-amber-400"
-      : "text-red-400";
+        ? "text-amber-400"
+        : "text-red-400";
 
   return (
     <div className="flex items-baseline gap-2 font-mono text-[11px] text-zinc-500 overflow-hidden animate-[slideIn_0.25s_ease-out]">
       <span className="text-zinc-700 shrink-0">{entry.time}</span>
-      <span className={`font-medium shrink-0 ${methodColor}`}>{entry.method}</span>
+      <span className={`font-medium shrink-0 w-11 ${statusColor}`}>{entry.method}</span>
       <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
         {entry.path}
       </span>
@@ -133,57 +150,85 @@ const LogLine = ({ entry }: { entry: LogEntry }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+// Simulated load shifts every ~20-40s so the panel occasionally has a busier
+// or quieter stretch, instead of hovering around one number forever.
 const ServerMetrics = () => {
   const [metrics, setMetrics] = useState<Metrics>({
-    cpu: 45,
-    memory: 2.1,
-    activeConnections: 1024,
-    latency: 12,
+    cpu: 34,
+    memory: 3.8,
+    activeConnections: 842,
+    latencyP50: 22,
+    latencyP99: 61,
   });
 
+  const [loadTarget, setLoadTarget] = useState(0.35); // 0-1, drives correlated metrics
+
   const [logs, setLogs] = useState<LogEntry[]>([
-    { time: nowTime(), method: "GET",  path: "/health",       status: "200", cls: "ok" },
-    { time: nowTime(), method: "POST", path: "/api/v1/auth",  status: "200", cls: "ok" },
-    { time: nowTime(), method: "GET",  path: "/api/v1/users", status: "200", cls: "ok" },
+    { time: nowTime(), method: "GET", path: "/health", status: "200", cls: "ok" },
+    { time: nowTime(), method: "POST", path: "/api/v1/auth/refresh", status: "200", cls: "ok" },
+    { time: nowTime(), method: "GET", path: "/api/v1/orders", status: "200", cls: "ok" },
   ]);
 
-  const [uptimeSeconds, setUptimeSeconds] = useState(
-    12 * 86400 + 4 * 3600 + 33 * 60
-  );
+  const [uptimeSeconds, setUptimeSeconds] = useState(9 * 86400 + 14 * 3600 + 7 * 60);
 
-  // Tick metrics every 1.5s
+  // Occasionally shift the "load target" — this is what makes CPU, memory,
+  // connections and latency move together like one system under one load,
+  // rather than four independent random walks.
   useEffect(() => {
     const id = setInterval(() => {
-      setMetrics((prev) => ({
-        cpu: Math.max(8, Math.min(96, prev.cpu + (Math.random() * 16 - 8))),
-        memory: Math.max(1.2, Math.min(14.5, prev.memory + (Math.random() * 0.3 - 0.15))),
-        activeConnections: Math.max(
-          600,
-          Math.min(8000, prev.activeConnections + Math.round(Math.random() * 60 - 30))
-        ),
-        latency: Math.max(4, Math.min(120, prev.latency + Math.round(Math.random() * 8 - 4))),
-      }));
-    }, 1500);
+      setLoadTarget(clamp(0.35 + (Math.random() - 0.5) * 0.5, 0.15, 0.85));
+    }, 25000 + Math.random() * 15000);
     return () => clearInterval(id);
   }, []);
 
-  // Add log entries every 2.4s
   useEffect(() => {
     const id = setInterval(() => {
-      const outcome = pick(OUTCOMES);
-      const entry: LogEntry = {
-        time: nowTime(),
-        method: pick(METHODS),
-        path: pick(ENDPOINTS),
-        ...outcome,
-      };
-      setLogs((prev) => {
-        const next = [...prev, entry];
-        return next.length > 5 ? next.slice(next.length - 5) : next;
+      setMetrics((prev) => {
+        const cpu = clamp(drift(prev.cpu, 20 + loadTarget * 65, 3), 6, 97);
+        const memory = clamp(drift(prev.memory, 2.5 + loadTarget * 8, 0.12), 1.2, 14.5);
+        const activeConnections = Math.round(
+          clamp(drift(prev.activeConnections, 300 + loadTarget * 4200, 40), 120, 7000)
+        );
+        const latencyP50 = Math.round(clamp(drift(prev.latencyP50, 14 + loadTarget * 45, 2.5), 6, 180));
+        // p99 tracks p50 but keeps its own noise so it doesn't look like a formula
+        const latencyP99 = Math.round(
+          clamp(drift(prev.latencyP99, latencyP50 * 2.2 + loadTarget * 20, 6), latencyP50 + 4, 400)
+        );
+        return { cpu, memory, activeConnections, latencyP50, latencyP99 };
       });
-    }, 2400);
+    }, 1800);
     return () => clearInterval(id);
-  }, []);
+  }, [loadTarget]);
+
+  // Log arrival rate also tracks load — busier system, more frequent lines.
+  useEffect(() => {
+    let cancelled = false;
+    const scheduleNext = () => {
+      const delay = clamp(2600 - loadTarget * 1800, 500, 4000) + Math.random() * 800;
+      const id = setTimeout(() => {
+        if (cancelled) return;
+        const outcome = pickWeighted();
+        const entry: LogEntry = {
+          time: nowTime(),
+          method: pick(METHODS),
+          path: pick(ENDPOINTS),
+          status: outcome.status,
+          cls: outcome.cls,
+        };
+        setLogs((prev) => {
+          const next = [...prev, entry];
+          return next.length > 5 ? next.slice(next.length - 5) : next;
+        });
+        scheduleNext();
+      }, delay);
+      return id;
+    };
+    const timeoutId = scheduleNext();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [loadTarget]);
 
   // Tick uptime every second
   useEffect(() => {
@@ -191,14 +236,13 @@ const ServerMetrics = () => {
     return () => clearInterval(id);
   }, []);
 
-  // Format uptime
   const d = Math.floor(uptimeSeconds / 86400);
   const h = Math.floor((uptimeSeconds % 86400) / 3600);
   const m = Math.floor((uptimeSeconds % 3600) / 60);
   const uptime = `up ${d}d ${h}h ${m}m`;
 
   const memPct = (metrics.memory / 16) * 100;
-  const p99 = Math.round(metrics.latency * 1.6);
+  const healthy = metrics.cpu < 80;
 
   return (
     <div
@@ -209,14 +253,14 @@ const ServerMetrics = () => {
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
         <div className="flex items-center gap-2">
           <span
-            className="inline-block w-2 h-2 rounded-full bg-emerald-400"
-            style={{ animation: "pulse 2s ease-in-out infinite" }}
+            className={`inline-block w-1.5 h-1.5 rounded-full ${healthy ? "bg-emerald-400" : "bg-amber-400"
+              }`}
           />
           <span
             className="text-[13px] font-medium text-zinc-100 tracking-wide"
             style={{ fontFamily: "'IBM Plex Mono', monospace" }}
           >
-            prod-cluster-01
+            prod-api · ap-south-1
           </span>
         </div>
         <span
@@ -241,7 +285,7 @@ const ServerMetrics = () => {
         {/* Memory */}
         <MetricBar
           label="Memory"
-          value={(metrics.memory / 16) * 100}
+          value={memPct}
           displayValue={`${metrics.memory.toFixed(2)} / 16.00 GB`}
           pct={memPct}
           color="#10b981"
@@ -257,9 +301,9 @@ const ServerMetrics = () => {
             sub="active / max 10k"
           />
           <StatCard
-            label="P95 Latency"
-            value={`${metrics.latency}ms`}
-            sub={<>p99: <span>{p99}ms</span></>}
+            label="P50 / P99"
+            value={`${metrics.latencyP50}ms`}
+            sub={<>p99: <span>{metrics.latencyP99}ms</span></>}
           />
         </div>
 
