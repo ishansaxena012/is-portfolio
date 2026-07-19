@@ -268,6 +268,16 @@ const Index = () => {
       category: "Cybersecurity",
       category2: "Systems Programming",
     },
+    {
+      title: "EvokAI",
+      description: "Voice journaling app",
+      technologies: ["Kotlin", "Node.js", "MongoDB", "OAuth", "JWT"],
+      image: "evokai.png",
+      github: "https://github.com/ishansaxena012/voice-backend",
+      demo: "https://evokai-app.web.app/",
+      category: "Mobile Development",
+      category2: "Backend Systems"
+    },
   ];
 
   const interests = [
